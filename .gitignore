@@ -85,3 +85,4 @@ yarn-debug.log*
 yarn-error.log*
 
 /.vscode
+backend/config/config.js
