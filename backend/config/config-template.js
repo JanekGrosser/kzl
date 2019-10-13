@@ -9,17 +9,35 @@ const env = "dev";
 
 // Local development.
 const dev = {
-
+    db: {
+        client: 'mysql2',
+        host: "127.0.0.1",
+        user: "user",
+        password: "password",
+        database: "KZLv3"
+    }
 }
 
 // Test server.
 const test = {
-
+    db: {
+        client: 'mysql2',
+        host: "127.0.0.1",
+        user: "user",
+        password: "password",
+        database: "KZLv3"
+    }
 }
 
 // Production server.
 const prod = {
-
+    db: {
+        client: 'mysql2',
+        host: "127.0.0.1",
+        user: "user",
+        password: "password",
+        database: "KZLv3"
+    }
 }
 
 const config = { dev, test, prod };
