@@ -36,8 +36,7 @@ exports.login = async (req, res) => {
         };
         const token = jwt.sign(jwtPayload, config.jwtSecret);
 
-        let responseData = { token: token, displayRole: user.role_id }
-        res.status(200).json(responseData);
+        res.status(200).json(token);
     };
 };
 
