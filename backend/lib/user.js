@@ -9,8 +9,6 @@ exports.listAll = async (req, res) => {
 };
 
 exports.newUser = async (req, res) => {
-    //Check if all parameters have been sent
-console.log(req.body);
     if (!(req.body.username_csr 
         && req.body.password 
         && req.body.first_name 
@@ -30,12 +28,10 @@ console.log(req.body);
         fp_id,
         role_id
     } = req.body;
-    //Hash the password
-    // console.log(password);
+
     let hash = await bcrypt.hash(password, saltRounds);
     let active = 1;
 
-    //Create new user
     try {
         await knex("user").insert({ username_csr, first_name, last_name, phone_num, fp_id, active, hash, role_id });
     } catch (error) {
@@ -43,6 +39,5 @@ console.log(req.body);
         return;
     }
 
-    //Send response
-    res.status(201).send("User created");
+    res.status(201).send(`User ${username_csr} created`);
 };
