@@ -4,6 +4,7 @@ const knex = require("../knex");
 const saltRounds = 10;
 
 exports.listAll = async (req, res) => {
+    //TODO remember to remove hash field from query
     const users = await knex("user");
     res.send(users);
 };
