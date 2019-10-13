@@ -1,4 +1,6 @@
-const jwt = require("jsonwebtoken");
+"use-strict";
+
+// const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const knex = require("../config/knex");
 const saltRounds = 10;

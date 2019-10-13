@@ -1,8 +1,11 @@
+"use-strict";
+
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 const config = require("../config/config");
 const knex = require("../config/knex");
+const saltRounds = 10;
 
 exports.login = async (req, res) => {
     let { username_csr, password } = req.body;
@@ -35,5 +38,22 @@ exports.login = async (req, res) => {
 
         let responseData = { token: token, displayRole: user.role_id }
         res.status(200).json(responseData);
+    };
+};
+
+exports.resetPassword = async (req, res) => {
+    let username = req.params.username_csr;
+    console.log(username)
+    let standardPassword = config.standardPassword;
+    let hash = bcrypt.hashSync(standardPassword, saltRounds);
+
+    let user = await knex("user")
+    .where({ username_csr: username })
+    .first()
+    .update({ hash: hash});
+    if (user > 0){
+        res.status(200).send(`Password for user ${username} has been reset`);
+    } else {
+        res.status(404).send(`User ${username} not found`);
     };
 };
