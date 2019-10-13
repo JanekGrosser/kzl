@@ -6,6 +6,6 @@ const router = express.Router();
 const authController = require("../lib/auth");
 
 router.post("/login", authController.login);
-router.patch("/reset/:username_csr", authController.resetPassword);
+router.post("/reset/:username_csr", authController.resetPassword);
 
 module.exports = router;

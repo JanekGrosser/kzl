@@ -8,7 +8,7 @@ const saltRounds = 10;
 exports.listAll = async (req, res) => {
     //TODO remember to remove hash field from query
     let users = await knex("user")
-        .select("user_id", "first_name", "last_name", "phone_num", "fp_name", "roles.role", "active")
+        .select("user_id", "username_csr","first_name", "last_name", "phone_num", "fp_name", "roles.role", "active")
         .innerJoin("fp", "user.fp_id", "fp.fp_id")
         .innerJoin("roles", "user.role_id", "roles.role_id");
     res.status(200).json(users);
@@ -51,7 +51,7 @@ exports.getUser = async (req, res) => {
     let id = req.params.user_id;
     let user = await knex("user")
         .where({ user_id: id })
-        .first("user_id", "first_name", "last_name", "phone_num", "fp_name", "roles.role", "active")
+        .first("user_id", "username_csr", "first_name", "last_name", "phone_num", "fp_name", "roles.role", "active")
         .innerJoin("fp", "user.fp_id", "fp.fp_id")
         .innerJoin("roles", "user.role_id", "roles.role_id")
     if (user) res.status(200).json(user);
