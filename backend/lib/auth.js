@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 const config = require("../config/config");
-const knex = require("../knex");
+const knex = require("../config/knex");
 
 exports.login = async (req, res) => {
     let { username_csr, password } = req.body;
