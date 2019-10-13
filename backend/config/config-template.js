@@ -15,7 +15,8 @@ const dev = {
         user: "user",
         password: "password",
         database: "KZLv3"
-    }
+    },
+    jwtSecret: "secret"
 }
 
 // Test server.
@@ -26,7 +27,8 @@ const test = {
         user: "user",
         password: "password",
         database: "KZLv3"
-    }
+    },
+    jwtSecret: "secret"
 }
 
 // Production server.
@@ -37,7 +39,8 @@ const prod = {
         user: "user",
         password: "password",
         database: "KZLv3"
-    }
+    },
+    jwtSecret: "secret"
 }
 
 const config = { dev, test, prod };
