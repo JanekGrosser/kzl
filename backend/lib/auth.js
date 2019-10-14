@@ -81,3 +81,4 @@ exports.newPassword = async (req, res) => {
         res.status(404).send("no user of that id found")
     };
 };
+
