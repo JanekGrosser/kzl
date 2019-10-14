@@ -56,3 +56,28 @@ exports.resetPassword = async (req, res) => {
         res.status(404).send(`User ${username} not found`);
     };
 };
+
+exports.newPassword = async (req, res) => {
+    const id = req.params.user_id;
+    const { password, newPassword } = req.body;
+
+    if (!(password && newPassword)) {
+        res.status(400).send("Request body params missing");
+    };
+
+    const user = await knex("user")
+        .where({ user_id: id })
+        .first();
+    if (user) {
+        const passwordIsValid = bcrypt.compareSync(password, user.hash);
+        if (passwordIsValid) {
+            const hash = bcrypt.hashSync(newPassword, saltRounds);
+            await knex("user")
+                .where({ user_id: id })
+                .update({ hash: hash });
+            res.status(200).send(`New password set for user ${id} `);
+        } else res.status(401).send("Wrong password");
+    } else {
+        res.status(404).send("no user of that id found")
+    };
+};
