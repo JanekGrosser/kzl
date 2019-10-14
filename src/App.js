@@ -1,26 +1,27 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import axios from 'axios';
+import './App.scss';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '@fortawesome/fontawesome-free/css/all.css';
+import LoginView from './views/LoginView';
+import PasswordResetView from "./views/PasswordResetView";
+import { Route, Link, Switch } from "react-router-dom";
+import withAuthentication from "./components/auth/withAuthentication";
+import LoggedInView from './views/LoggedInView';
+
+
+axios.defaults.baseURL = process.env.REACT_APP_API_BASE_URL;
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className={"app bg-light"}>
+      <Switch>
+        <Route path="/login"><LoginView/></Route>
+        <Route path="/password-reset"><PasswordResetView/></Route>
+        <Route path="/"><LoggedInView/></Route>
+      </Switch>
     </div>
   );
 }
 
-export default App;
+export default withAuthentication(App);

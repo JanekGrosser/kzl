@@ -1,0 +1,50 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#root {
+
+  height: 100%;
+
+  .app {
+
+    min-height: 100%;
+  
+    .login-view, .password-reset-view {
+      //display: flex;
+      flex-flow: row nowrap;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 60px;
+      
+      > div {
+        width: 100%;
+
+        header {
+          font-size: 2rem;
+          text-align: center;
+          span {
+            margin-left: 1rem;
+          }
+        }
+
+        form {
+          width: 100%;
+          max-width: 500px;
+          padding: 30px;
+          margin: auto;
+
+          a:last-child {
+            > i {
+              margin-right: 0.5rem;
+            }
+          }
+        }
+      }
+    }
+  }
+}
