@@ -5,8 +5,8 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const cors = require("cors");
 
-const userRoutes = require("./routes/user.route");
-const authRoutes = require("./routes/auth.route");
+const userRoutes = require("./routes/user-routes");
+const authRoutes = require("./routes/auth-routes");
 
 const app = express();
 
