@@ -9,7 +9,9 @@ const knex = require('knex')(
             user: config.db.user,
             password: config.db.password,
             database: config.db.database
-        }
+        },
+        debug: true,
+        asyncStackTraces: true
     }
 );
 module.exports = knex;
