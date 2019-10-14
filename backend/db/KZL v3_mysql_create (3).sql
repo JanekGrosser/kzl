@@ -24,10 +24,9 @@ CREATE TABLE `fp` (
 );
 
 CREATE TABLE `shifts` (
-	`shift_id` tinyint NOT NULL AUTO_INCREMENT,
-	`shift_start` char(5) NOT NULL UNIQUE,
-	`shift_duration` tinyint(4) NOT NULL,
-	PRIMARY KEY (`shift_id`)
+  `shift_id` tinyint(4) NOT NULL AUTO_INCREMENT,
+  `shift_start` smallint(4) unsigned zerofill NOT NULL UNIQUE,
+  PRIMARY KEY (`shift_id`),
 );
 
 CREATE TABLE `man_shifts` (

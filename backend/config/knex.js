@@ -1,5 +1,6 @@
 "use:strict";
-const config = require("./config/config.js");
+
+const config = require("./config.js");
 const knex = require('knex')(
     {
         client: config.db.client,
