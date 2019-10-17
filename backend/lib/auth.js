@@ -1,4 +1,7 @@
 "use-strict";
+//TODO add missing try catch blocks
+//TODO consider always using username_csr instead od user_id in requests
+//TODO add validator
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -14,7 +17,9 @@ exports.login = async (req, res) => {
     } else {
         const user = await knex("user")
             .where({ username_csr })
-            .first();
+            .first("user_id", "username_csr", "first_name", "last_name", "phone_num", "fp_name", "role", "active", "hash")
+            .innerJoin("fp", "user.fp_id", "fp.fp_id")
+            .innerJoin("roles", "user.role_id", "roles.role_id");
         console.log(user);
         if (!user) {
             res.status(401).send(`No username ${username_csr}`);
@@ -32,7 +37,8 @@ exports.login = async (req, res) => {
             username: user.username_csr,
             first_name: user.first_name,
             last_name: user.last_name,
-            role_id: user.role_id
+            role: user.role,
+            fp: user.fp_name
         };
         const token = jwt.sign(jwtPayload, config.jwtSecret);
 
@@ -42,9 +48,8 @@ exports.login = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
     let username = req.params.username_csr;
-    console.log(username)
     let standardPassword = config.standardPassword;
-    let hash = bcrypt.hashSync(standardPassword, saltRounds);
+    let hash = await bcrypt.hashSync(standardPassword, saltRounds);
 
     let user = await knex("user")
     .where({ username_csr: username })
@@ -62,23 +67,25 @@ exports.newPassword = async (req, res) => {
     const { password, newPassword } = req.body;
 
     if (!(password && newPassword)) {
-        res.status(400).send("Request body params missing");
+        return res.status(400).send("Request body params missing");
     };
 
     const user = await knex("user")
         .where({ user_id: id })
         .first();
     if (user) {
-        const passwordIsValid = bcrypt.compareSync(password, user.hash);
+        const passwordIsValid = await bcrypt.compareSync(password, user.hash);
         if (passwordIsValid) {
             const hash = bcrypt.hashSync(newPassword, saltRounds);
             await knex("user")
                 .where({ user_id: id })
                 .update({ hash: hash });
-            res.status(200).send(`New password set for user ${id} `);
-        } else res.status(401).send("Wrong password");
+            return res.status(200).send(`New password set for user ${id} `);
+        } else {
+            return res.status(401).send("Wrong password");
+        };
     } else {
-        res.status(404).send("no user of that id found")
+        return res.status(404).send("no user of that id found")
     };
 };
 
