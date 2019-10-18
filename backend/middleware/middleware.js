@@ -8,7 +8,7 @@ const config = require("../config/config");
 const knex = require("../config/knex");
 
 /**
- * Middleware function checks if token from request authirization header is valid.
+ * Middleware function checks if token from request authorization header is valid.
  * On success it passes decoded token payload to next middleware.
  * On failure it returns 401 response.
  */
