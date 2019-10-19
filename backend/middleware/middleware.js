@@ -14,9 +14,10 @@ const knex = require("../config/knex");
  */
 exports.checkJwt = async (req, res, next) => {
     try {
-        const baerer = req.headers.authorization;
-        //Remove "Baerer " part from authorization header
-        let token = baerer.slice(8, -1);
+        const bearer = req.headers.authorization;
+        //Remove "Bearer " part from authorization header
+        let token = bearer.slice(7);
+        console.log(token);
         //Verify if token is ok
         res.locals.payload = jwt.verify(token, config.jwtSecret);
     } catch (err) {
