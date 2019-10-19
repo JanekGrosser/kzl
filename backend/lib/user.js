@@ -2,6 +2,8 @@
 //TODO add missing try catch blocks
 //TODO consider always using username_csr instead od user_id in requests
 //TODO add validator
+//TODO refactor to ensure not blocking the Event Loop
+
 
 const bcrypt = require("bcrypt");
 const knex = require("../config/knex");

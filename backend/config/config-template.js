@@ -16,6 +16,10 @@ const dev = {
         password: "password",
         database: "KZLv3"
     },
+    nexmo: {
+        apiKey: "key",
+        apiSecret: "secret"
+    },
     jwtSecret: "secret",
     standardPassword: "password",
 }
@@ -29,6 +33,10 @@ const test = {
         password: "password",
         database: "KZLv3"
     },
+    nexmo: {
+        apiKey: "key",
+        apiSecret: "secret"
+    },
     jwtSecret: "secret",
     standardPassword: "password",
 }
@@ -41,6 +49,10 @@ const prod = {
         user: "user",
         password: "password",
         database: "KZLv3"
+    },
+    nexmo: {
+        apiKey: "key",
+        apiSecret: "secret"
     },
     jwtSecret: "secret",
     standardPassword: "password",
