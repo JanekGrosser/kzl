@@ -10,10 +10,10 @@ const knex = require("../config/knex");
 const saltRounds = 10;
 
 exports.listAll = async (req, res) => {
-    const users = await knex("user")
-        .select("user_id", "username_csr","first_name", "last_name", "phone_num", "fp_name", "roles.role", "active")
-        .innerJoin("fp", "user.fp_id", "fp.fp_id")
-        .innerJoin("roles", "user.role_id", "roles.role_id")
+    const users = await knex("users")
+        .select("user_id", "username_csr","first_name", "last_name", "phone_num", "subdivision_name", "roles.role", "active")
+        .innerJoin("subdivisions", "users.subdivision_id", "subdivisions.subdivision_id")
+        .innerJoin("roles", "users.role_id", "roles.role_id")
         .orderBy("user_id");
     return res.status(200).json(users);
 };
@@ -25,7 +25,7 @@ exports.newUser = async (req, res) => {
         first_name,
         last_name,
         phone_num,
-        fp_id,
+        subdivision_id,
         role_id
     } = req.body;
 
@@ -34,14 +34,14 @@ exports.newUser = async (req, res) => {
         && req.body.first_name 
         && req.body.last_name 
         && req.body.phone_num 
-        && req.body.fp_id
+        && req.body.subdivision_id
         && req.body.role_id)) {
             return res.status(400).send("Check request params");
     } else {
         const hash = await bcrypt.hash(password, saltRounds);
         let active = 1;
         try {
-            await knex("user").insert({ username_csr, first_name, last_name, phone_num, fp_id, active, hash, role_id });
+            await knex("users").insert({ username_csr, first_name, last_name, phone_num, subdivision_id, active, hash, role_id });
         } catch (error) {
             return res.status(400).send(error.stack);
         }
@@ -51,11 +51,11 @@ exports.newUser = async (req, res) => {
 
 exports.getUser = async (req, res) => {
     const id = req.params.user_id;
-    let user = await knex("user")
+    let user = await knex("users")
         .where({ user_id: id })
-        .first("user_id", "username_csr", "first_name", "last_name", "phone_num", "fp_name", "role", "active")
-        .innerJoin("fp", "user.fp_id", "fp.fp_id")
-        .innerJoin("roles", "user.role_id", "roles.role_id");
+        .first("user_id", "username_csr", "first_name", "last_name", "phone_num", "subdivision_name", "role", "active")
+        .innerJoin("subdivisions", "users.subdivision_id", "subdivisions.subdivision_id")
+        .innerJoin("roles", "users.role_id", "roles.role_id");
     if (user) {
         return res.status(200).json(user);
     } else {
@@ -65,7 +65,7 @@ exports.getUser = async (req, res) => {
 
 exports.deleteUser = async (req, res) => {
     const id = req.params.user_id;
-    const user = await knex("user")
+    const user = await knex("users")
         .where({ user_id: id })
         .del();
     if (user > 0) {
@@ -84,7 +84,7 @@ exports.editUser = async (req, res) => {
         first_name,
         last_name,
         phone_num,
-        fp_id,
+        subdivision_id,
         role_id,
         active
     } = req.body;
@@ -93,7 +93,7 @@ exports.editUser = async (req, res) => {
         && req.body.first_name
         && req.body.last_name
         && req.body.phone_num
-        && req.body.fp_id
+        && req.body.subdivision_id
         && req.body.role_id)) {
         return res.status(400).send("Check request params");
     } else {
@@ -103,12 +103,12 @@ exports.editUser = async (req, res) => {
         user.first_name = first_name;
         user.last_name = last_name;
         user.phone_num = phone_num;
-        user.fp_id = fp_id;
+        user.subdivision_id = subdivision_id;
         user.role_id = role_id;
         user.active = active;
         try {
             //Send update query to DB and assign true/false update response from DB to variable
-            let updated = await knex("user")
+            let updated = await knex("users")
                 .where({ user_id:id })
                 .update(user);
             //If ok send 201 and JSON with details

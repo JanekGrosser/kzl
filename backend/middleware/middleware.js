@@ -38,11 +38,11 @@ exports.hasRole = (roles) => {
         //Get user id from previous middleware
         const id = res.locals.payload.id;
         //Get user data from DB
-        const user = await knex("user")
+        const user = await knex("users")
             .where({ user_id: id })
-            .first("user_id", "fp_name", "role", "active")
-            .innerJoin("fp", "user.fp_id", "fp.fp_id")
-            .innerJoin("roles", "user.role_id", "roles.role_id");
+            .first("user_id", "subdivision_name", "role", "active")
+            .innerJoin("subdivisions", "users.subdivision_id", "subdivisions.subdivision_id")
+            .innerJoin("roles", "users.role_id", "roles.role_id");
         //if role from token payload matches the user's role pulled from DB then authorize access
         if (roles.includes(user.role)) {
             return next();
@@ -69,11 +69,11 @@ exports.hasRoleOrIdMatch = (roles) => {
         //Or check if has requred role
         } else {
             //Get user data from DB
-            const user = await knex("user")
+            const user = await knex("users")
                 .where({ user_id: id })
-                .first("user_id", "fp_name", "role", "active")
-                .innerJoin("fp", "user.fp_id", "fp.fp_id")
-                .innerJoin("roles", "user.role_id", "roles.role_id");
+                .first("user_id", "subdivision_name", "role", "active")
+                .innerJoin("subdivisions", "users.subdivision_id", "subdivisions.subdivision_id")
+                .innerJoin("roles", "users.role_id", "roles.role_id");
             //If role from token payload matches the user's role pulled from DB then authorize access
             if (roles.includes(user.role)) {
                 return next();
