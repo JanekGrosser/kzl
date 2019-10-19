@@ -22,11 +22,11 @@ exports.login = async (req, res) => {
     if (!(username_csr && password)) {
         res.status(400).send("Check request params");
     } else {
-        const user = await knex("user")
+        const user = await knex("users")
             .where({ username_csr })
-            .first("user_id", "username_csr", "first_name", "last_name", "phone_num", "fp_name", "role", "active", "hash")
-            .innerJoin("fp", "user.fp_id", "fp.fp_id")
-            .innerJoin("roles", "user.role_id", "roles.role_id");
+            .first("user_id", "username_csr", "first_name", "last_name", "phone_num", "subdivision_name", "role", "active", "hash")
+            .innerJoin("subdivisions", "users.subdivision_id", "subdivisions.subdivision_id")
+            .innerJoin("roles", "users.role_id", "roles.role_id");
         console.log(user);
         if (!user) {
             res.status(401).send(`No username ${username_csr}`);
@@ -45,7 +45,7 @@ exports.login = async (req, res) => {
             first_name: user.first_name,
             last_name: user.last_name,
             role: user.role,
-            fp: user.fp_name
+            subdivision: user.subdivision_name
         };
         const token = jwt.sign(jwtPayload, config.jwtSecret);
 
@@ -56,13 +56,13 @@ exports.login = async (req, res) => {
 exports.resetPassword = async (req, res) => {
     try{
         let username = req.params.username_csr;
-        const user = await knex("user")
+        const user = await knex("users")
             .first("phone_num", "user_id", "username_csr")
             .where({ username_csr: username })
         if (user) {
             let newPassword = await generator.generate({ length: 5, numbers: true }); // TODO make stronger for poroduction
             let hash = await bcrypt.hashSync(newPassword, saltRounds);
-            const updated = await knex("user")
+            const updated = await knex("users")
                 .where({ username_csr: username })
                 .first()
                 .update({ hash: hash });
@@ -88,14 +88,14 @@ exports.newPassword = async (req, res) => {
         return res.status(400).send("Request body params missing");
     };
 
-    const user = await knex("user")
+    const user = await knex("users")
         .where({ user_id: id })
         .first();
     if (user) {
         const passwordIsValid = await bcrypt.compareSync(password, user.hash);
         if (passwordIsValid) {
             const hash = bcrypt.hashSync(newPassword, saltRounds);
-            await knex("user")
+            await knex("users")
                 .where({ user_id: id })
                 .update({ hash: hash });
             return res.status(200).send(`New password set for user ${id} `);
