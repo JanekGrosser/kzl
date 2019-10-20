@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import withAuthentication from "../components/auth/withAuthentication";
-import userService from "../services/userService";
 import authService from "../services/authService";
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -19,10 +18,11 @@ class LoggedInView extends Component {
         }
 
         this.onUserChange = this.onUserChange.bind(this);
+        this.onAddUser = this.onAddUser.bind(this);
+        this.onUserDelete = this.onUserDelete.bind(this);
     }
 
     componentDidMount() {
-        console.log('asddsa');
         if (authService.isPriviligedRole()) {
             axios.all([
                 axios.get('/users'),
@@ -36,6 +36,23 @@ class LoggedInView extends Component {
                 })
             }));
         }
+    }
+
+    onUserDelete(deletedUser) {
+        console.log("KURWAAA");
+        console.log(deletedUser);
+        var users = this.state.users.filter((u) => u.user_id !== deletedUser.user_id);
+        this.setState({
+            users
+        })
+    }
+
+    onAddUser(addedUser) {
+        this.state.users.push(addedUser);
+
+        this.setState({
+            users: this.state.users
+        })
     }
 
     onUserChange(changedUser) {
@@ -54,7 +71,7 @@ class LoggedInView extends Component {
 
     render() {
         return (<>
-            <Header {...this.state} onUserChange={this.onUserChange}/>
+            <Header {...this.state} onUserChange={this.onUserChange} onUserDelete={this.onUserDelete}/>
             <main role="main" className="main-view"></main>
             <Footer/>
         </>

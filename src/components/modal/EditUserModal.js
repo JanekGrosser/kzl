@@ -72,6 +72,7 @@ class EditUserModal extends Component {
         if (this.state.selectedUser.user_id > -1) {
             axios.delete(`/users/${this.state.selectedUser.user_id}`)
                 .then((res) => {
+                    this.props.onUserDelete(this.state.selectedUser);
                     this.setState({
                         selectedUser: this.getDefaultUserState(),
                         alert: true,
@@ -112,7 +113,6 @@ class EditUserModal extends Component {
     }
 
     removeSubdivision(id) {
-        debugger;
         var selectedUser = this.state.selectedUser;
         var user_subdivisions = selectedUser.user_subdivisions;
         var newSubdivisions = user_subdivisions.split(",").map(parseInt).filter((s) => s !== id).join(',');
@@ -129,7 +129,6 @@ class EditUserModal extends Component {
 
     onSubSelected(e) {
         var id = e.target.value;
-        debugger;
 
         var selectedUser = this.state.selectedUser;
         var user_subdivisions = selectedUser.user_subdivisions;
@@ -144,7 +143,6 @@ class EditUserModal extends Component {
     }
 
     render() {
-        console.log(this.state.selectedUser);
         return (
             <Modal
                 show={this.props.show}
@@ -184,7 +182,7 @@ class EditUserModal extends Component {
                                     placeholder={c.csr}
                                     name="username_csr"
                                     value={this.state.selectedUser.username_csr}
-                                    onChange={this.onChange}
+                                    disabled
                                 />
                             </Form.Group>
                             <Form.Group>
@@ -285,7 +283,8 @@ EditUserModal.propTypes = {
     users: PropTypes.array,
     subdivisions: PropTypes.array,
     roles: PropTypes.array,
-    onUserSave: PropTypes.func
+    onUserSave: PropTypes.func,
+    onUserDelete: PropTypes.func
 };
 
 export default EditUserModal;

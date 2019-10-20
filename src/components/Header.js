@@ -100,8 +100,8 @@ class Header extends Component {
           </Navbar.Collapse>
         </Navbar>
         <ChangePasswordModal show={this.state.passwordModalOpened} onClose={this.hidePasswordModal} />
-        <EditUserModal onUserSave={this.props.onUserChange} users={this.props.users} subdivisions={this.props.subdivisions} roles={this.props.roles} show={this.state.userModalOpened} onClose={this.hideEditUserModal}/>
-        <AddUserModal show={this.state.addUserModalOpened} onClose={this.hideAddUserModal}/>
+        <EditUserModal onUserDelete={this.props.onUserDelete} onUserSave={this.props.onUserChange} users={this.props.users} subdivisions={this.props.subdivisions} roles={this.props.roles} show={this.state.userModalOpened} onClose={this.hideEditUserModal}/>
+        <AddUserModal onAddUser={this.props.onAddUser} users={this.props.users} subdivisions={this.props.subdivisions} roles={this.props.roles} show={this.state.addUserModalOpened} onClose={this.hideAddUserModal}/>
       </>
     );
   }
@@ -111,7 +111,9 @@ Header.propTypes = {
   users: PropTypes.array,
   subdivisions: PropTypes.array,
   roles: PropTypes.array,
-  onUserChange: PropTypes.func
+  onUserChange: PropTypes.func,
+  onAddUser: PropTypes.func,
+  onUserDelete: PropTypes.func
 }
 
 export default withRouter(Header);
