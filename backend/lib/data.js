@@ -28,3 +28,43 @@ exports.getCurrentShifts = async (req, res) => {
         return res.status(500).send(err)
     };
 };
+
+exports.getSubdivisionsDictionary = async (req, res) => {
+    try{
+        const subdivisions = await knex("subdivisions").select();
+        return res.status(200).json(subdivisions);
+
+    }catch(error){
+        res.sendStatus(500).end();
+    };
+};
+
+exports.getRolesDictionary = async (req, res) => {
+    try{
+        const roles = await knex("roles").select();
+        return res.status(200).json(roles);
+
+    }catch(error){
+        res.sendStatus(500).end();
+    };
+};
+
+exports.getShiftsDictionary = async (req, res) => {
+    try{
+        const shifts = await knex("shifts").select();
+        return res.status(200).json(shifts);
+
+    }catch(error){
+        res.sendStatus(500).end();
+    };
+};
+
+exports.getStatusDictionary = async (req, res) => {
+    try {
+        const status = await knex("status").select();
+        return res.status(200).json(status);
+
+    } catch (error) {
+        res.sendStatus(500).end();
+    };
+};
