@@ -22,12 +22,19 @@ exports.login = async (req, res) => {
     if (!(username_csr && password)) {
         res.status(400).send("Check request params");
     } else {
-        const user = await knex("users")
+        const user = await knex("users_auth_view")
             .where({ username_csr })
-            .first("user_id", "username_csr", "first_name", "last_name", "phone_num", "subdivision_name", "role", "active", "hash")
-            .innerJoin("subdivisions", "users.subdivision_id", "subdivisions.subdivision_id")
-            .innerJoin("roles", "users.role_id", "roles.role_id");
-        console.log(user);
+            .first(
+                "user_id", 
+                "username_csr", 
+                "first_name", 
+                "last_name", 
+                "phone_num", 
+                "user_subdivisions", 
+                "role", 
+                "role_id", 
+                "active", 
+                "hash");
         if (!user) {
             res.status(401).send(`No username ${username_csr}`);
             return;
@@ -45,7 +52,8 @@ exports.login = async (req, res) => {
             first_name: user.first_name,
             last_name: user.last_name,
             role: user.role,
-            subdivision: user.subdivision_name
+            role_id: user.role_id,
+            user_subdivisions: user.user_subdivisions
         };
         const token = jwt.sign(jwtPayload, config.jwtSecret);
 
@@ -58,7 +66,7 @@ exports.resetPassword = async (req, res) => {
         let username = req.params.username_csr;
         const user = await knex("users")
             .first("phone_num", "user_id", "username_csr")
-            .where({ username_csr: username })
+            .where({ username_csr: username });
         if (user) {
             let newPassword = await generator.generate({ length: 5, numbers: true }); // TODO make stronger for poroduction
             let hash = await bcrypt.hashSync(newPassword, saltRounds);
