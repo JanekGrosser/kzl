@@ -115,10 +115,9 @@ class EditUserModal extends Component {
     removeSubdivision(id) {
         var selectedUser = this.state.selectedUser;
         var user_subdivisions = selectedUser.user_subdivisions;
-        var newSubdivisions = user_subdivisions.split(",").map(parseInt).filter((s) => s !== id).join(',');
+        var newSubdivisions = user_subdivisions.split(",").map((el) => parseInt(el)).filter((s) => s !== id).join(',');
 
         
-
         selectedUser.user_subdivisions = newSubdivisions;
         
         this.setState({
