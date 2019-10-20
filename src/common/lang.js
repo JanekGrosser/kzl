@@ -38,6 +38,8 @@ var translations = {
         userDeleted: "Użytkownik {0} został usunięty",
         userEditError: "Wystąpił błąd przy zapisywaniu użytkownika {0}. Spróbuj ponownie",
         userDeleteError: "Wystąpił błąd przy usuwaniu użytkownika {0}. Spróbuj ponownie",
+        userAdded: "Użytkownik {0} został dodany",
+        userAddedError: "Wystąpił błąd przy dodawaniu użytkownika {0}. Spróbuj ponownie",
         homeView: "Widok główny",
         users: "Użytkownicy",
         subdivisions: "Podwykowawcy",

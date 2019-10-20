@@ -3,6 +3,7 @@ import { Modal, Button, Form, Alert, ListGroup } from "react-bootstrap";
 import l from "../../common/lang";
 import PropTypes from "prop-types";
 import axios from "axios";
+import stringUtil from "../../util/stringUtil";
 
 var lang = l();
 
@@ -39,28 +40,35 @@ class AddUserModal extends Component {
             role_id: -1,
             user_subdivisions: "",
             username_csr: "",
-            user_id: -1,
-            active: 0
+            active: 0,
+            phone_num: "",
+            password: ""
         };
     }
 
     onSave() {
         var userToSave = this.state.newUser.username_csr;
-        if (this.state.newUser.user_id > -1) {
-            var postObject = Object.assign({}, this.state.newUser);
-            postObject.subdivision_id = postObject.user_subdivisions;
-            axios
-                .post(`/users/${this.state.newUser.user_id}`, postObject)
-                .then(res => {
-                    this.props.onUserSave(this.state.newUser);
-                    this.setState({
-                        newUser: this.getDefaultUserState(),
-                        alert: true,
-                        message: `Uzytkownik ${userToSave} zapisany prawidlowo`
-                    });
-                })
-                .catch(err => {});
-        }
+        var postObject = Object.assign({}, this.state.newUser);
+        postObject.subdivision_id = postObject.user_subdivisions;
+        axios
+            .post(`/users/new`, postObject)
+            .then(res => {
+                this.props.onAddUser(this.state.newUser);
+                this.setState({
+                    newUser: this.getDefaultUserState(),
+                    alert: true,
+                    error: false,
+                    message: stringUtil.format(lang.userAdded, userToSave)
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                this.setState({
+                    alert: true,
+                    error: true,
+                    message: stringUtil.format(lang.userAddedError, userToSave)
+                });
+            });
     }
 
     onChange(e) {
@@ -97,14 +105,14 @@ class AddUserModal extends Component {
     }
 
     removeSubdivision(id) {
-        debugger;
         var newUser = this.state.newUser;
         var user_subdivisions = newUser.user_subdivisions;
         var newSubdivisions = user_subdivisions
             .split(",")
-            .map(parseInt)
+            .map(s => s.trim())
             .filter(s => s !== id)
-            .join(",");
+            .join(",")
+            .trim();
 
         newUser.user_subdivisions = newSubdivisions;
 
@@ -115,14 +123,16 @@ class AddUserModal extends Component {
 
     onSubSelected(e) {
         var id = e.target.value;
-        debugger;
 
         var newUser = this.state.newUser;
         var user_subdivisions = newUser.user_subdivisions;
         var newSubdivisions =
             user_subdivisions === "" ? [] : user_subdivisions.split(",");
+
+        newSubdivisions.map(sub => sub.trim());
         newSubdivisions.push(id);
         newSubdivisions = newSubdivisions.join(",");
+        newSubdivisions.trim();
         newUser.user_subdivisions = newSubdivisions;
 
         this.setState({
@@ -144,15 +154,6 @@ class AddUserModal extends Component {
                 </Modal.Header>
 
                 <Modal.Body>
-                    {this.state.alert ? (
-                        <Alert
-                            variant={this.state.error ? "danger" : "success"}
-                        >
-                            {this.state.message}
-                        </Alert>
-                    ) : (
-                        ""
-                    )}
                     <Form.Group>
                         <Form.Label>{lang.csr}</Form.Label>
                         <Form.Control
@@ -160,6 +161,16 @@ class AddUserModal extends Component {
                             placeholder={lang.csr}
                             name="username_csr"
                             value={this.state.newUser.username_csr}
+                            onChange={this.onChange}
+                        />
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label>{lang.password}</Form.Label>
+                        <Form.Control
+                            type="password"
+                            placeholder={lang.password}
+                            name="password"
+                            value={this.state.newUser.password}
                             onChange={this.onChange}
                         />
                     </Form.Group>
@@ -201,7 +212,6 @@ class AddUserModal extends Component {
                                 .filter(sub_id => {
                                     return this.state.newUser.user_subdivisions
                                         .split(",")
-                                        .map(el => parseInt(el))
                                         .includes(sub_id);
                                 })
                                 .map(sub_id => {
@@ -274,8 +284,16 @@ class AddUserModal extends Component {
                             checked={this.state.newUser.active == 1}
                         />
                     </Form.Group>
+                    {this.state.alert ? (
+                        <Alert
+                            variant={this.state.error ? "danger" : "success"}
+                        >
+                            {this.state.message}
+                        </Alert>
+                    ) : (
+                        ""
+                    )}
                 </Modal.Body>
-
                 <Modal.Footer>
                     <Button
                         variant="secondary"

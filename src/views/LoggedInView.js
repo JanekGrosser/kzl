@@ -77,10 +77,10 @@ class LoggedInView extends Component {
 
     render() {
         return (<>
-            <Header {...this.state}/>
+            <Header {...this.state} onAddUser={this.onAddUser}/>
                 <main role="main" className="main-view">
                     <Route path="/users">
-                        <UsersComponent pageSize={10} {...this.state} onUserChange={this.onUserChange} onUserDelete={this.onUserDelete}></UsersComponent>
+                        <UsersComponent pageSize={10} {...this.state} onUserChange={this.onUserChange} onUserDelete={this.onUserDelete} ></UsersComponent>
                     </Route>
                 </main>
             <Footer/>
