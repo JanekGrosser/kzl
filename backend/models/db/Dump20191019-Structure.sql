@@ -28,7 +28,7 @@ CREATE TABLE `man_shifts` (
   `date` date NOT NULL,
   `shift_id` tinyint(4) NOT NULL,
   `status_id` tinyint(4) NOT NULL,
-  `user_last_change` datetime NOT NULL,
+  `user_last_change` timestamp(2) NOT NULL DEFAULT CURRENT_TIMESTAMP(2) ON UPDATE CURRENT_TIMESTAMP(2),
   PRIMARY KEY (`man_shift_id`),
   KEY `index2` (`user_id`,`date`,`shift_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1001 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -109,7 +109,7 @@ CREATE TABLE `users` (
   `active` tinyint(1) NOT NULL,
   `hash` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `role_id` tinyint(4) NOT NULL,
-  `last_pass_reset` timestamp(5) NOT NULL DEFAULT '2018-12-31 23:00:01.00000',
+  `last_pass_reset` timestamp(2) NOT NULL DEFAULT '2018-12-31 23:00:01.00',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username_csr` (`username_csr`),
   KEY `fk_users_1_idx` (`role_id`),
@@ -223,4 +223,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-10-20  2:42:13
+-- Dump completed on 2019-10-20 13:57:54
