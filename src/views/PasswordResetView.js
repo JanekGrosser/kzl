@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import lang from "../common/lang";
+import l from "../common/lang";
 import PasswordResetForm from "../components/PasswordResetForm";
 
-var t = lang().passwordReset;
+var lang = l();
 
 class PasswordResetView extends Component {
     render() {
@@ -10,8 +10,8 @@ class PasswordResetView extends Component {
             <main className="password-reset-view container">
                 <div>
                     <header>
-                        <i class="fas fa-unlock"></i>
-                        <span>{t.header}</span>
+                        <i className="fas fa-unlock"></i>
+                        <span>{lang.resetPassword}</span>
                     </header>
                     <PasswordResetForm/>
                 </div>

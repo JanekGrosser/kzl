@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import authService from '../services/authService';
+import l from "../common/lang";
+
+var lang = l();
 
 class Footer extends Component {
 
@@ -22,13 +25,13 @@ class Footer extends Component {
                 <div className="container">
                     <nav className="nav nav-pills nav-stacked">
                         <li className="text-muted">
-                            &copy; NetInser, {new Date().getFullYear()}
+                            &copy; {lang.brand}, {new Date().getFullYear()}
                         </li>
                         <li className="nav-link">
-                            <Link to="/">Strona główna</Link>
+                            <Link to="/">{lang.homeView}</Link>
                         </li>
                         <li className="nav-link" onClick={this.onLogout}>
-                            <Link to="/">Wyloguj się</Link>
+                            <Link to="/">{lang.logout}</Link>
                         </li>
                     </nav>
                 </div>

@@ -1,14 +1,21 @@
 import React, { Component } from "react";
 import { Modal, Button, Form, Alert, ListGroup } from "react-bootstrap";
-import lang from "../../common/lang";
+import l from "../../common/lang";
 import PropTypes from "prop-types";
 import axios from "axios";
-import authService from "../../services/authService";
+import stringUtil from "../../util/stringUtil";
 
-var t = lang().editUser;
-var c = lang().common;
+var lang = l();
 
 class EditUserModal extends Component {
+
+    static getDerivedStateFromProps(props,state) {
+        props.user.user_subdivisions = props.user.user_subdivisions.split(",").map((sub) => sub.trim()).join(",");
+        return Object.assign({}, state, {
+            selectedUser: props.user
+        })
+    }
+
     constructor(props) {
         super(props);
 
@@ -20,6 +27,7 @@ class EditUserModal extends Component {
         this.removeSubdivision = this.removeSubdivision.bind(this);
         this.onSubSelected = this.onSubSelected.bind(this);
         this.onDelete = this.onDelete.bind(this);
+        
     }
 
     clearState() {
@@ -28,73 +36,74 @@ class EditUserModal extends Component {
 
     getDefaultState() {
         return {
-            selectedUser: this.getDefaultUserState(),
+            selectedUser: this.props.user,
             alert: false,
             error: false,
             message: ""
         };
     }
 
-    getDefaultUserState() {
-        return {
-            first_name: "",
-            last_name: "",
-            role_id: -1,
-            user_subdivisions: "",
-            username_csr: "",
-            user_id: -1,
-            active: 0
-        }
-    }
-
     onSave() {
-        var userToSave = this.state.selectedUser.username_csr;
+        var userToSave = this.state.selectedUser.first_name + " " + this.state.selectedUser.last_name;
         if (this.state.selectedUser.user_id > -1) {
             var postObject = Object.assign({}, this.state.selectedUser);
             postObject.subdivision_id = postObject.user_subdivisions;
-            axios.post(`/users/${this.state.selectedUser.user_id}`, postObject)
-                .then((res) => {
+            axios
+                .post(`/users/${this.state.selectedUser.user_id}`, postObject)
+                .then(res => {
                     this.props.onUserSave(this.state.selectedUser);
                     this.setState({
-                        selectedUser: this.getDefaultUserState(),
                         alert: true,
-                        message: `Uzytkownik ${userToSave} zapisany prawidlowo`
+                        error: false,
+                        message: stringUtil.format(lang.userEdited, userToSave)
+                    });
+                })
+                .catch(err => {
+                    console.error(err);
+                    this.setState({
+                        alert: true,
+                        error: true,
+                        message: stringUtil.format(lang.userEditError, userToSave)
                     })
-                })
-                .catch((err) => {
-                    
-                })
+                });
         }
     }
 
     onDelete() {
-        var userToDelete = this.state.selectedUser.username_csr;
+        var userToDelete = this.state.selectedUser.first_name + " " + this.state.selectedUser.last_name;
         if (this.state.selectedUser.user_id > -1) {
-            axios.delete(`/users/${this.state.selectedUser.user_id}`)
-                .then((res) => {
+            axios
+                .delete(`/users/${this.state.selectedUser.user_id}`)
+                .then(res => {
                     this.props.onUserDelete(this.state.selectedUser);
                     this.setState({
-                        selectedUser: this.getDefaultUserState(),
                         alert: true,
-                        message: `Uzytkownik ${userToDelete} usunięty`
+                        message: stringUtil.format(lang.userDeleted, userToDelete)
+                    });
+                })
+                .catch((err) => {
+                    console.error(err);
+                    this.setState({
+                        alert: true,
+                        error: true,
+                        message: stringUtil.format(lang.userDeleteError, userToDelete)
                     })
                 })
         }
     }
 
     onChange(e) {
-        var target = e.target;
-        
+
         var name = e.target.name;
         var value = e.target.value;
         var selectedUser = this.state.selectedUser;
 
         if (name == "active") {
             value = e.target.checked ? 1 : 0;
-        } 
+        }
 
         selectedUser[name] = value;
- 
+
         this.setState({
             selectedUser,
             alert: false
@@ -103,27 +112,33 @@ class EditUserModal extends Component {
 
     onUserSelected(e) {
         var user_id = e.target.value;
-        var selectedUser = Object.assign({},this.props.users.find((u) => {
-            return u.user_id == user_id;
-        }));
+        var selectedUser = Object.assign(
+            {},
+            this.state.selectedUsers.find(u => {
+                return u.user_id == user_id;
+            })
+        );
 
         this.setState({
             selectedUser
-        })
+        });
     }
 
     removeSubdivision(id) {
         var selectedUser = this.state.selectedUser;
         var user_subdivisions = selectedUser.user_subdivisions;
-        var newSubdivisions = user_subdivisions.split(",").map((el) => parseInt(el)).filter((s) => s !== id).join(',');
+        var newSubdivisions = user_subdivisions
+            .split(",")
+            .map(s => s.trim())
+            .filter(s => s !== id)
+            .join(",")
+            .trim();
 
-        
         selectedUser.user_subdivisions = newSubdivisions;
-        
+
         this.setState({
             selectedUser
-        })
-
+        });
     }
 
     onSubSelected(e) {
@@ -131,14 +146,18 @@ class EditUserModal extends Component {
 
         var selectedUser = this.state.selectedUser;
         var user_subdivisions = selectedUser.user_subdivisions;
-        var newSubdivisions = user_subdivisions === "" ? [] : user_subdivisions.split(",");
+        var newSubdivisions =
+            user_subdivisions === "" ? [] : user_subdivisions.split(",");
+            
+        newSubdivisions.map(sub => sub.trim());
         newSubdivisions.push(id);
         newSubdivisions = newSubdivisions.join(",");
+        newSubdivisions.trim();
         selectedUser.user_subdivisions = newSubdivisions;
-        
+
         this.setState({
             selectedUser
-        })
+        });
     }
 
     render() {
@@ -151,10 +170,132 @@ class EditUserModal extends Component {
                 }}
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>{t.header}</Modal.Title>
+                    <Modal.Title>{lang.editUser}</Modal.Title>
                 </Modal.Header>
 
                 <Modal.Body>
+                    <Form.Group>
+                        <Form.Label>{lang.csr}</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder={lang.csr}
+                            name="username_csr"
+                            value={this.state.selectedUser.username_csr}
+                            disabled
+                        />
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label>{lang.firstName}</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder={lang.firstName}
+                            name="first_name"
+                            value={this.state.selectedUser.first_name}
+                            onChange={this.onChange}
+                        />
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label>{lang.lastName}</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder={lang.lastName}
+                            name="last_name"
+                            value={this.state.selectedUser.last_name}
+                            onChange={this.onChange}
+                        />
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label>{lang.telephone}</Form.Label>
+                        <Form.Control
+                            type="tel"
+                            placeholder={lang.telephone}
+                            name="phone_num"
+                            value={this.state.selectedUser.phone_num}
+                            onChange={this.onChange}
+                        />
+                    </Form.Group>
+                    <Form.Group></Form.Group>
+                    <Form.Group>
+                        <Form.Label>{lang.chosenSubdivisions}</Form.Label>
+                        <ListGroup>
+                            {Object.keys(this.props.subdivisions)
+                                .filter(sub_id => {
+                                    return this.state.selectedUser.user_subdivisions
+                                        .split(",")
+                                        .includes(sub_id);
+                                })
+                                .map(sub_id => {
+                                    return (
+                                        <ListGroup.Item
+                                            key={sub_id}
+                                        >
+                                            <i
+                                                className="far fa-times-circle text-danger"
+                                                onClick={() =>
+                                                    this.removeSubdivision(
+                                                        sub_id
+                                                    )
+                                                }
+                                            ></i>
+                                            {this.props.subdivisions[sub_id]}
+                                        </ListGroup.Item>
+                                    );
+                                })}
+                        </ListGroup>
+                        <Form.Control
+                            as="select"
+                            name="addNewSub"
+                            onChange={this.onSubSelected}
+                            value={"initial"}
+                        >
+                            <option disabled key={-1} value="initial">
+                                {lang.addNewSubdivision}}
+                            </option>
+                            {Object.keys(this.props.subdivisions)
+                                .filter(sub_id => {
+                                    return !this.state.selectedUser.user_subdivisions
+                                        .split(",")
+                                        .includes(sub_id);
+                                })
+                                .map(sub_id => {
+                                    return (
+                                        <option
+                                            key={sub_id}
+                                            value={sub_id}
+                                        >
+                                            {this.props.subdivisions[sub_id]}
+                                        </option>
+                                    );
+                                })}
+                        </Form.Control>
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label>{lang.role}</Form.Label>
+                        <Form.Control
+                            as="select"
+                            name="role_id"
+                            onChange={this.onChange}
+                            value={this.state.selectedUser.role_id}
+                        >
+                            <option disabled key={0} value={-1}>
+                                {lang.chooseRole}
+                            </option>
+                            {Object.keys(this.props.roles).map((role_id, el) => (
+                                <option key={el + 1} value={role_id}>
+                                    {this.props.roles[role_id]}
+                                </option>
+                            ))}
+                        </Form.Control>
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Check
+                            type="checkbox"
+                            label={lang.active}
+                            name="active"
+                            onChange={this.onChange}
+                            checked={this.state.selectedUser.active == 1}
+                        />
+                    </Form.Group>
                     {this.state.alert ? (
                         <Alert
                             variant={this.state.error ? "danger" : "success"}
@@ -165,100 +306,11 @@ class EditUserModal extends Component {
                         ""
                     )}
                     <Form.Group>
-                        <Form.Control as="select" name="selectedUser" onChange={this.onUserSelected} value={this.state.selectedUser.user_id}>
-                            <option disabled key={0} value={-1}>Wybierz uzytkownika</option>
-                            { this.props.users.map((user,el) => 
-                                <option key={el + 1} value={user.user_id}>{user.first_name + " " + user.last_name + " (" + user.username_csr + ")"}</option>    
-                            )}
-                        </Form.Control>
+                        <Button variant="danger" onClick={this.onDelete}>
+                            {lang.deleteUser}
+                        </Button>
                     </Form.Group>
-                    { this.state.selectedUser.user_id !== -1 ?
-                        <>
-                            <Form.Group>
-                                <Form.Label>CSR</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder={c.csr}
-                                    name="username_csr"
-                                    value={this.state.selectedUser.username_csr}
-                                    disabled
-                                />
-                            </Form.Group>
-                            <Form.Group>
-                                <Form.Label>Imię</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder={c.firstName}
-                                    name="first_name"
-                                    value={this.state.selectedUser.first_name}
-                                    onChange={this.onChange}
-                                />
-                            </Form.Group>
-                            <Form.Group>
-                                <Form.Label>Nazwisko</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder={c.lastName}
-                                    name="last_name"
-                                    value={this.state.selectedUser.last_name}
-                                    onChange={this.onChange}
-                                />
-                            </Form.Group>
-                            <Form.Group>
-                                <Form.Label>Telefon</Form.Label>
-                                <Form.Control
-                                    type="tel"
-                                    placeholder={c.telephone}
-                                    name="phone_num"
-                                    value={this.state.selectedUser.phone_num}
-                                    onChange={this.onChange}
-                                />
-                            </Form.Group>
-                            <Form.Group>
-                            </Form.Group>
-                            <Form.Group>
-                                <Form.Label>Wybrani podwykonawcy</Form.Label>
-                                <ListGroup>
-                                    {
-                                        this.props.subdivisions.filter((sub) => {
-                                            var id = sub.subdivision_id;
-                                            return this.state.selectedUser.user_subdivisions.split(',').map((el) => parseInt(el)).includes(id)
-                                        }).map((sub) => {
-                                            return <ListGroup.Item key={sub.subdivision_id}><i className="far fa-times-circle text-danger" onClick={() => this.removeSubdivision(sub.subdivision_id)}></i>{sub.subdivision_name}</ListGroup.Item>;
-                                        })
-                                    }
-                                </ListGroup>
-                                <Form.Control as="select" name="addNewSub" onChange={this.onSubSelected} value={"initial"}>
-                                    <option disabled key={-1} value='initial'>Dodaj nowego podwykonawce</option>
-                                    {
-                                        this.props.subdivisions.filter((sub) => {
-                                            var id = sub.subdivision_id;
-                                            return !this.state.selectedUser.user_subdivisions.split(',').map((el) => parseInt(el)).includes(id)
-                                        }).map((sub) => {
-                                            return <option key={sub.subdivision_id} value={sub.subdivision_id}>{sub.subdivision_name}</option>
-                                        })
-                                    }
-                                </Form.Control>
-                            </Form.Group>
-                            <Form.Group>
-                                <Form.Label>Rola</Form.Label>
-                                <Form.Control as="select" name="role_id" onChange={this.onChange} value={this.state.selectedUser.role_id}>
-                                        <option disabled key={0} value={-1}>Wybierz role</option>
-                                        { this.props.roles.map((role,el) => 
-                                            <option key={el + 1} value={role.role_id}>{role.role}</option>    
-                                        )}
-                                </Form.Control>
-                            </Form.Group>
-                            <Form.Group>
-                                <Form.Check type="checkbox" label="Aktywny" name="active" onChange={this.onChange} checked={this.state.selectedUser.active == 1} />
-                            </Form.Group>
-                            { authService.isSuperUserRole() ? <Form.Group>
-                                <Button variant="danger" onClick={this.onDelete}>Usuń</Button>
-                            </Form.Group> : "" }
-                        </>
-                        : "" }
                 </Modal.Body>
-
                 <Modal.Footer>
                     <Button
                         variant="secondary"
@@ -267,10 +319,10 @@ class EditUserModal extends Component {
                             this.props.onClose();
                         }}
                     >
-                        {c.close}
+                        {lang.close}
                     </Button>
                     <Button variant="primary" onClick={this.onSave}>
-                        {c.save}
+                        {lang.save}
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -279,9 +331,9 @@ class EditUserModal extends Component {
 }
 
 EditUserModal.propTypes = {
-    users: PropTypes.array,
-    subdivisions: PropTypes.array,
-    roles: PropTypes.array,
+    user: PropTypes.object,
+    subdivisions: PropTypes.object,
+    roles: PropTypes.object,
     onUserSave: PropTypes.func,
     onUserDelete: PropTypes.func
 };

@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-import lang from '../common/lang';
+import l from '../common/lang';
 import authService from "../services/authService";
 import { withRouter } from "react-router-dom";
 
-var c = lang().common;
-var t = lang().passwordReset;
+var lang = l();
 
 class PasswordResetForm extends Component {
 
@@ -25,7 +24,7 @@ class PasswordResetForm extends Component {
         authService.resetPassword(this.state.csr)
             .then(() => {
                 this.setState({
-                    message: t.success,
+                    message: lang.success,
                     error: ""
                 })
             })
@@ -33,10 +32,10 @@ class PasswordResetForm extends Component {
                 var error;
                 switch(err.response.status) {
                     case 404: 
-                        error = t.wrongCsr;
+                        error = lang.wrongCsr;
                         break;
                     default:
-                        error = c.serverError;
+                        error = lang.serverError;
                         break;
                 }            
                 this.setState({ error });
@@ -58,14 +57,14 @@ class PasswordResetForm extends Component {
                 {this.state.message ? <div className="alert alert-success" role="alert">{this.state.message}</div> : ""}
                 {this.state.error ? <div className="alert alert-danger" role="alert">{this.state.error}</div> : ""}
                 <div className="form-group">
-                    <input type="text" className="form-control" name="csr" id="csr" placeholder={c.csrPlaceholder} value={this.state.csr} onChange={this.onChange}></input>
+                    <input type="text" className="form-control" name="csr" id="csr" placeholder={lang.csrPlaceholder} value={this.state.csr} onChange={this.onChange}></input>
                 </div>
                 <div className="form-group">
-                    <button className="btn btn-primary w-100" type="submit">{t.button}</button>
+                    <button className="btn btn-primary w-100" type="submit">{lang.resetPassword}</button>
                 </div>
                 <a href="#" onClick={this.props.history.goBack}>
-                    <i class="fas fa-arrow-left"></i>
-                    <span>{c.back}</span>
+                    <i className="fas fa-arrow-left"></i>
+                    <span>{lang.back}</span>
                 </a>
             </form>
         )
