@@ -7,16 +7,38 @@ function withAuthentication(WrappedComponent) {
 
         constructor(props) {
             super(props);
+
+            this.state = {
+                isAuthenticated: false
+            }
         }
 
         componentDidMount() {
             if(!authService.isLoggedIn()) {
                 this.props.history.push("/login");
+            } else {
+                if (!this.state.isAuthenticated) {
+                    this.setState({
+                        isAuthenticated: true
+                    })
+                }
+            }
+        }
+
+        componentDidUpdate(prevProps, prevState) {
+            if(!authService.isLoggedIn()) {
+                this.props.history.push("/login");
+            } else {
+                if (!this.state.isAuthenticated) {
+                    this.setState({
+                        isAuthenticated: true
+                    })
+                }
             }
         }
         
         render() {
-            return <WrappedComponent {...this.props} />;
+            return this.state.isAuthenticated ? <WrappedComponent {...this.props}/> : "";
           }
     });
 }

@@ -5,13 +5,52 @@ body, html {
   width: 100%;
 }
 
+.box-shadow {
+  -webkit-box-shadow: 0 8px 6px -6px #999;
+  -moz-box-shadow: 0 8px 6px -6px #999;
+  box-shadow: 0 8px 6px -6px #999;
+}
+
 #root {
 
   height: 100%;
 
+  footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+    background-color: #f5f5f5;
+
+    li  {
+      padding: 0 .5rem;
+    }
+  }
+
   .app {
 
     min-height: 100%;
+    position: relative;
+
+    .navbar {
+      
+      .dropdown {
+        .btn.btn-primary {
+          i {
+            margin-right: 0.5rem;
+          }
+        }
+      }
+
+      @media only screen and (max-width: 767px) {
+        .dropdown {
+          display: none;
+
+          
+        }
+      }
+    }
   
     .login-view, .password-reset-view {
       //display: flex;
@@ -46,5 +85,14 @@ body, html {
         }
       }
     }
+  }
+}
+
+.form-group {
+  i {
+    margin-right: .5rem;
+  }
+  .list-group-item {
+    padding: .5rem;
   }
 }

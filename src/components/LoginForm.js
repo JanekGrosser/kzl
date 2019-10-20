@@ -59,7 +59,7 @@ class LoginForm extends Component {
                     <input type="text" className="form-control" name="csr" id="csr" placeholder={c.csrPlaceholder} value={this.state.csr} onChange={this.onChange}></input>
                 </div>
                 <div className="form-group">
-                    <input type="password" className="form-control" name="password" id="password" placeholder={c.passwordPlaceholder} value={this.state.password} onChange={this.onChange}></input>
+                    <input type="password" className="form-control" name="password" id="password" placeholder={c.password} value={this.state.password} onChange={this.onChange}></input>
                 </div>
                 <div className="form-group">
                     <button className="btn btn-primary w-100" type="submit">{t.button}</button>

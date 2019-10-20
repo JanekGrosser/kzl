@@ -1,6 +1,13 @@
 
 import axios from "axios";
 
+function b64DecodeUnicode(str) {
+    // Going backwards: from bytestream, to percent-encoding, to original string.
+    return decodeURIComponent(atob(str).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+}
+
 class AuthService {
 
     constructor() {
@@ -8,7 +15,29 @@ class AuthService {
         this.key = 'authToken';
         this.storage = window.localStorage;
         this.token = this.storage.getItem(this.key);
-        
+        if (this.token) {
+            this.data = JSON.parse(b64DecodeUnicode(this.token.split(".")[1]));
+            axios.defaults.headers.common['Authorization'] = "Bearer " + this.token;
+        } else {
+            this.data = {};
+        }
+        console.log(this.data);
+    }
+
+    isPriviligedRole() {
+        return this.data.role && this.data.role !== 'tec';
+    }
+
+    isSuperUserRole() {
+        return this.data.role && ["adm", "koz", "pre"].includes(this.data.role);
+    }
+
+    getUserData() {
+        return this.data;
+    }
+
+    getUsername() {
+        return this.data.first_name + " " + this.data.last_name;
     }
 
     isLoggedIn() {
@@ -21,14 +50,22 @@ class AuthService {
         }).then((res) => {
             this.token = res.data;
             this.storage .setItem(this.key,this.token);
+            this.data = JSON.parse(b64DecodeUnicode(this.token.split(".")[1]));
+            axios.defaults.headers.common['Authorization'] = "Bearer " + this.token;
         })
     }
 
     logOut() {
         return new Promise((res,rej) => {
             this._clearToken();
+            axios.defaults.headers.common['Authorization'] = undefined;
             res();
         });
+    }
+
+    changePassword(password, newPassword) {
+        var userId = this.data.id;
+        return axios.post(`/auth/newpassword/${userId}`, { password, newPassword });
     }
 
     resetPassword(csr) {

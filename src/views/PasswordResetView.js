@@ -7,7 +7,7 @@ var t = lang().passwordReset;
 class PasswordResetView extends Component {
     render() {
         return (
-            <div className="password-reset-view container">
+            <main className="password-reset-view container">
                 <div>
                     <header>
                         <i class="fas fa-unlock"></i>
@@ -15,7 +15,7 @@ class PasswordResetView extends Component {
                     </header>
                     <PasswordResetForm/>
                 </div>
-            </div>
+            </main>
         );
     }
 }

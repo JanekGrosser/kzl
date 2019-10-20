@@ -3,20 +3,20 @@ import LoginForm from "../components/LoginForm";
 import { Link } from "react-router-dom";
 import lang from "../common/lang";
 
-var t = lang().login;
+var c = lang().common;
 
 class LoginView extends Component {
     render() {
         return (
-            <div className="login-view container">
+            <main className="login-view container">
                 <div>
                     <header>
                         <i className="far fa-calendar-alt"></i> 
-                        <span>{t.header}</span>
+                        <span>{c.brand}</span>
                     </header>
                     <LoginForm/>
                 </div>
-            </div>
+            </main>
         )
     }
 }
