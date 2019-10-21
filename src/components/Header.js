@@ -1,14 +1,13 @@
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
-import lang from "../common/lang";
+import l from "../common/lang";
 import authService from "../services/authService";
-import { withRouter } from "react-router-dom";
+import { withRouter, Link } from "react-router-dom";
 import ChangePasswordModal from "./modal/ChangePasswordModal";
-import EditUserModal from "./modal/EditUserModal";
 import AddUserModal from "./modal/AddUserModal";
 import { Dropdown, Button, Navbar, Nav } from "react-bootstrap";
 
-var c = lang().common;
+var lang = l();
 
 class Header extends Component {
   constructor(props) {
@@ -21,10 +20,8 @@ class Header extends Component {
 
     this.onLogout = this.onLogout.bind(this);
     this.hidePasswordModal = this.hidePasswordModal.bind(this);
-    this.hideEditUserModal = this.hideEditUserModal.bind(this);
     this.hideAddUserModal = this.hideAddUserModal.bind(this);
     this.openPasswordModal = this.openPasswordModal.bind(this);
-    this.openEditUserModal = this.openEditUserModal.bind(this);
     this.openAddUserModal = this.openAddUserModal.bind(this);
     
   }
@@ -41,12 +38,6 @@ class Header extends Component {
     })
   }
 
-  hideEditUserModal() {
-    this.setState({
-      userModalOpened: false
-    })
-  }
-
   hideAddUserModal() {
     this.setState({
       addUserModalOpened: false
@@ -56,12 +47,6 @@ class Header extends Component {
   openPasswordModal() {
     this.setState({
       passwordModalOpened: true
-    })
-  }
-
-  openEditUserModal() {
-    this.setState({
-      userModalOpened: true
     })
   }
 
@@ -76,23 +61,23 @@ class Header extends Component {
     return (
       <>
         <Navbar className="box-shadow" collapseOnSelect bg="light" expand="lg">
-          <Navbar.Brand href="/">{c.brand}</Navbar.Brand>
+          <Navbar.Brand href="/">{lang.brand}</Navbar.Brand>
           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="navbar-nav mr-auto">
-              { authService.isSuperUserRole() ? <Nav.Link onClick={this.openAddUserModal}>{c.addUser}</Nav.Link> : "" }
-              { authService.isPriviligedRole() ? <Nav.Link onClick={this.openEditUserModal}>{c.editUser}</Nav.Link> : "" }
+              { authService.isSuperUserRole() ? <Nav.Link onClick={this.openAddUserModal}>{lang.addUser}</Nav.Link> : "" }
+              { authService.isPriviligedRole() ? <Link className="nav-link" to="/users">{lang.users}</Link> : "" }
             </Nav>
             <Dropdown>
               <Dropdown.Toggle variant="primary" id="dropdown-user">
                 <i className="fas fa-user"></i>{authService.getUsername()}
               </Dropdown.Toggle>
               <Dropdown.Menu>
-                <Dropdown.Item onClick={this.openPasswordModal}>{c.changePassword}</Dropdown.Item>
+                <Dropdown.Item onClick={this.openPasswordModal}>{lang.changePassword}</Dropdown.Item>
                 <Dropdown.Divider></Dropdown.Divider>
                 <Dropdown.Item>
                   <Button variant="outline-danger" onClick={this.onLogout}>
-                    <i className="fas fa-sign-out-alt"></i>Wyloguj
+                    <i className="fas fa-sign-out-alt"></i>{lang.logout}
                   </Button>
                 </Dropdown.Item>
               </Dropdown.Menu>
@@ -100,7 +85,6 @@ class Header extends Component {
           </Navbar.Collapse>
         </Navbar>
         <ChangePasswordModal show={this.state.passwordModalOpened} onClose={this.hidePasswordModal} />
-        <EditUserModal onUserDelete={this.props.onUserDelete} onUserSave={this.props.onUserChange} users={this.props.users} subdivisions={this.props.subdivisions} roles={this.props.roles} show={this.state.userModalOpened} onClose={this.hideEditUserModal}/>
         <AddUserModal onAddUser={this.props.onAddUser} users={this.props.users} subdivisions={this.props.subdivisions} roles={this.props.roles} show={this.state.addUserModalOpened} onClose={this.hideAddUserModal}/>
       </>
     );
@@ -109,8 +93,8 @@ class Header extends Component {
 
 Header.propTypes = {
   users: PropTypes.array,
-  subdivisions: PropTypes.array,
-  roles: PropTypes.array,
+  subdivisions: PropTypes.object,
+  roles: PropTypes.object,
   onUserChange: PropTypes.func,
   onAddUser: PropTypes.func,
   onUserDelete: PropTypes.func

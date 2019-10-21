@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import { Modal, Button, Form, Alert } from "react-bootstrap";
 import authService from "../../services/authService";
-import lang from "../../common/lang";
+import l from "../../common/lang";
+import stringUtil from "../../util/stringUtil";
 
-var t = lang().changePassword;
-var c = lang().common;
+var lang = l();
 
 class ChangePasswordModal extends Component {
     constructor(props) {
@@ -35,7 +35,7 @@ class ChangePasswordModal extends Component {
             .changePassword(this.state.password, this.state.newPassword)
             .then(res => {
                 this.setState({
-                    message: t.success,
+                    message: lang.passwordChanged,
                     error: false,
                     alert: true
                 });
@@ -48,10 +48,10 @@ class ChangePasswordModal extends Component {
                 switch (err.response.status) {
                     case 401:
                         error = true;
-                        message = t.wrongPassword;
+                        message = lang.wrongPassword;
                         break;
                     default:
-                        message = c.serverError;
+                        message = lang.serverError;
                         error = true;
                         break;
                 }
@@ -77,7 +77,7 @@ class ChangePasswordModal extends Component {
                 }}
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>{t.changePassword}</Modal.Title>
+                    <Modal.Title>{lang.changePassword}</Modal.Title>
                 </Modal.Header>
 
                 <Modal.Body>
@@ -93,7 +93,7 @@ class ChangePasswordModal extends Component {
                     <Form.Group>
                         <Form.Control
                             type="password"
-                            placeholder={c.password}
+                            placeholder={lang.password}
                             name="password"
                             value={this.state.password}
                             onChange={this.onChange}
@@ -102,7 +102,7 @@ class ChangePasswordModal extends Component {
                     <Form.Group>
                         <Form.Control
                             type="password"
-                            placeholder={t.newPassword}
+                            placeholder={lang.newPassword}
                             name="newPassword"
                             value={this.state.newPassword}
                             onChange={this.onChange}
@@ -118,10 +118,10 @@ class ChangePasswordModal extends Component {
                             this.props.onClose();
                         }}
                     >
-                        {c.close}
+                        {lang.close}
                     </Button>
                     <Button variant="primary" onClick={this.onSave}>
-                        {c.save}
+                        {lang.save}
                     </Button>
                 </Modal.Footer>
             </Modal>

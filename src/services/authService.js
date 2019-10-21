@@ -21,7 +21,6 @@ class AuthService {
         } else {
             this.data = {};
         }
-        console.log(this.data);
     }
 
     isPriviligedRole() {
@@ -83,6 +82,5 @@ class AuthService {
 }
 
 var authService = new AuthService();
-console.log(authService.isLoggedIn());
 
 export default authService;

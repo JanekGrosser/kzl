@@ -4,6 +4,8 @@ import authService from "../services/authService";
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import axios from "axios";
+import { Route } from "react-router-dom";
+import UsersComponent from "../components/UsersComponent";
 
 class LoggedInView extends Component {
 
@@ -13,8 +15,8 @@ class LoggedInView extends Component {
 
         this.state = {
             users: [],
-            roles: [],
-            subdivisions: []
+            roles: {},
+            subdivisions: {}
         }
 
         this.onUserChange = this.onUserChange.bind(this);
@@ -31,16 +33,20 @@ class LoggedInView extends Component {
             ]).then(axios.spread((usersResp,rolesResp,subdivisionsResp)=> {
                 this.setState({
                     users: usersResp.data, 
-                    roles: rolesResp.data,
-                    subdivisions: subdivisionsResp.data
+                    roles: rolesResp.data.reduce((acc, curr) => {
+                        acc[curr.role_id] = curr.role;
+                        return acc;
+                    },{}),
+                    subdivisions: subdivisionsResp.data.reduce((acc, curr) => {
+                        acc[curr.subdivision_id] = curr.subdivision_name;
+                        return acc;
+                    },{}),
                 })
             }));
         }
     }
 
     onUserDelete(deletedUser) {
-        console.log("KURWAAA");
-        console.log(deletedUser);
         var users = this.state.users.filter((u) => u.user_id !== deletedUser.user_id);
         this.setState({
             users
@@ -71,8 +77,12 @@ class LoggedInView extends Component {
 
     render() {
         return (<>
-            <Header {...this.state} onUserChange={this.onUserChange} onUserDelete={this.onUserDelete}/>
-            <main role="main" className="main-view"></main>
+            <Header {...this.state} onAddUser={this.onAddUser}/>
+                <main role="main" className="main-view">
+                    <Route path="/users">
+                        <UsersComponent pageSize={10} {...this.state} onUserChange={this.onUserChange} onUserDelete={this.onUserDelete} ></UsersComponent>
+                    </Route>
+                </main>
             <Footer/>
         </>
         )
