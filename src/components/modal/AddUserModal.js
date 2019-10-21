@@ -48,6 +48,7 @@ class AddUserModal extends Component {
 
     onSave() {
         var userToSave = this.state.newUser.username_csr;
+        this.state.newUser.role = this.props.roles[this.state.newUser.role_id];
         var postObject = Object.assign({}, this.state.newUser);
         postObject.subdivision_id = postObject.user_subdivisions;
         axios
@@ -243,7 +244,6 @@ class AddUserModal extends Component {
                                 .filter(sub_id => {
                                     return !this.state.newUser.user_subdivisions
                                         .split(",")
-                                        .map(el => parseInt(el))
                                         .includes(sub_id);
                                 })
                                 .map(sub_id => {

@@ -69,7 +69,7 @@ class UsersComponent extends Component {
             user.phone_num.indexOf(this.state.search) > -1;
         });
         return (
-            <Container>
+            <>
                 <h2>Uzytkownicy</h2>
                 <div style={{ display: "flex" }}>
                     <InputGroup className="mb-3">
@@ -88,7 +88,7 @@ class UsersComponent extends Component {
                     </InputGroup>
                 </div>
                 <div className="table-wrapper">
-                    <Table responsive bordered hover size="sm">
+                    <Table responsive bordered hover>
                         <thead>
                             <tr>
                                 <th>{lang.firstName}</th>
@@ -148,7 +148,7 @@ class UsersComponent extends Component {
                     show={this.state.modal}
                     onClose={this.hideEditUserModal}
                 />
-            </Container>
+            </>
         );
     }
 }
