@@ -75,7 +75,8 @@ exports.login = async (req, res) => {
         const token = jwt.sign(jwtPayload, config.jwtSecret);
         res.status(200).json(token);
     } catch(error) {
-        return res.status(500).json({error: error});
+        console.log(error);
+        return res.sendStatus(500);
     };
 };
 
@@ -113,7 +114,8 @@ exports.resetPassword = async (req, res) => {
             return res.status(404).json({ error: "User not found"});
         };
     } catch (error){
-        return res.status(500).json({error: error});
+        console.log(error);
+        return res.sendStatus(500);
     };
 };
 
@@ -157,7 +159,8 @@ exports.newPassword = async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         };
     } catch(error) {
-        res.status(500).json({error:error});
+        console.log(error);
+        return res.sendStatus(500);
     }; 
 };
 
