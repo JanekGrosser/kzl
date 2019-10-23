@@ -26,12 +26,27 @@ CREATE TABLE `man_shifts` (
   `man_shift_id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` smallint(6) NOT NULL,
   `date` date NOT NULL,
+  `month_id` int(11) NOT NULL,
   `shift_id` tinyint(4) NOT NULL,
   `status_id` tinyint(4) NOT NULL,
   `user_last_change` timestamp(2) NOT NULL DEFAULT CURRENT_TIMESTAMP(2) ON UPDATE CURRENT_TIMESTAMP(2),
-  PRIMARY KEY (`man_shift_id`),
-  KEY `index2` (`user_id`,`date`,`shift_id`) USING BTREE
+  PRIMARY KEY (`man_shift_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1001 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `months`
+--
+
+DROP TABLE IF EXISTS `months`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `months` (
+  `month_id` int(11) NOT NULL AUTO_INCREMENT,
+  `year_month` date NOT NULL,
+  PRIMARY KEY (`month_id`),
+  UNIQUE KEY `year_month_UNIQUE` (`year_month`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -59,9 +74,9 @@ DROP TABLE IF EXISTS `shifts`;
 CREATE TABLE `shifts` (
   `shift_id` tinyint(4) NOT NULL AUTO_INCREMENT,
   `shift_start` smallint(4) unsigned zerofill NOT NULL,
-  PRIMARY KEY (`shift_id`),
-  UNIQUE KEY `shift_start` (`shift_start`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `role_id` tinyint(4) NOT NULL,
+  PRIMARY KEY (`shift_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -114,7 +129,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `username_csr` (`username_csr`),
   KEY `fk_users_1_idx` (`role_id`),
   CONSTRAINT `fk_users_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=180 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=193 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -223,4 +238,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-10-20 13:57:54
+-- Dump completed on 2019-10-23 19:44:52
