@@ -20,8 +20,8 @@ exports.checkJwt = async (req, res, next) => {
         console.log(token);
         //Verify if token is ok
         res.locals.payload = jwt.verify(token, config.jwtSecret);
-    } catch (err) {
-        return res.status(401).json(err.message);
+    } catch (error) {
+        return res.sendStatus(403);
     };
     //Set verified token payload to res.locals and pass to next middleware
     if (res.locals.payload) {
@@ -31,7 +31,7 @@ exports.checkJwt = async (req, res, next) => {
 
 /**
  * Middleware function checks if user has certain role.
- * @param roles {array} - Role names
+ * @param {array} roles - Role names
  */
 exports.hasRole = (roles) => {
     //Return function syntax is required for middleware to accept custom parameters
@@ -41,20 +41,20 @@ exports.hasRole = (roles) => {
         //Get user data from DB
         const user = await knex("users_view")
             .where({ user_id: id })
-            .first("user_id", "user_subdivisions", "role", "active")
+            .first("user_id", "user_subdivisions", "role", "active");
         //if role from token payload matches the user's role pulled from DB then authorize access
         if (roles.includes(user.role)) {
             return next();
         //else just send status to limit response details for unauthorized request
         } else {
-            return res.sendStatus(401).end();
+            return res.sendStatus(403).end();
         };
     };
 };
 
 /**
  * Middleware function checks if user has certain role OR requesting user requests own details
- * @param roles {array} - Role names
+ * @param {array} roles  - Role names
  */
 exports.hasRoleOrIdMatch = (roles) => {
     //Return function syntax is required for middleware to accept custom parameters
@@ -76,7 +76,7 @@ exports.hasRoleOrIdMatch = (roles) => {
                 return next();
                 //else just send status to limit response details for unauthorized request
             } else {
-                return res.sendStatus(401).end();
+                return res.sendStatus(403).end();
             };
         };
     };

@@ -1,14 +1,13 @@
 "use-strict";
-//TODO add missing try catch blocks
-//TODO consider always using username_csr instead od user_id in requests
-//TODO add validator
-//TODO refactor to ensure not blocking the Event Loop
+//TODO check to ensure not blocking the Event Loop
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const generator = require("generate-password");
 const Nexmo = require("nexmo");
+const validate = require("validator");
 
+// const respond = require("./responses").respond;
 const config = require("../config/config");
 const knex = require("../config/knex");
 const nexmo = new Nexmo({
@@ -17,35 +16,53 @@ const nexmo = new Nexmo({
 }, {debug: true})
 const saltRounds = 10;
 
+/**
+ * @async Function checks if provided password mathces hashed password in DB
+ * 
+ */
 exports.login = async (req, res) => {
-    let { username_csr, password } = req.body;
-    if (!(username_csr && password)) {
-        res.status(400).send("Check request params");
-    } else {
+    try {
+        let { username_csr, password } = req.body;
+        //Check if all input parameters are sent
+        if (!(username_csr && password)) {
+            return res.status(400).json({error: "Missing request params"});
+        };
+        //Input format validation
+        let validateCsr = validate.isLength(username_csr, { min: 3, max: 3 });
+        let validatePassword = validate.isLength(password, {min:3, max: 20});
+        if (!validateCsr) {
+            return res.status(401).json({error: "Bad CSR format"});
+        } else if (!validatePassword){
+            return res.status(401).json({error: "Bad password format" });
+        };
+        //Fetch user object with hash from DB
         const user = await knex("users_auth_view")
             .where({ username_csr })
             .first(
-                "user_id", 
-                "username_csr", 
-                "first_name", 
-                "last_name", 
-                "phone_num", 
-                "user_subdivisions", 
-                "role", 
-                "role_id", 
-                "active", 
+                "user_id",
+                "username_csr",
+                "first_name",
+                "last_name",
+                "phone_num",
+                "user_subdivisions",
+                "role",
+                "role_id",
+                "active",
                 "hash");
+        //Send 401 if no user found
         if (!user) {
-            res.status(401).send(`No username ${username_csr}`);
-            return;
+            return res.status(401).json({error: "User not found"});
         };
-
+        //Send 401 if password doesn't match
         const passwordIsValid = await bcrypt.compare(password, user.hash);
         if (!passwordIsValid) {
-            res.status(401).send(`Bad password for user ${username_csr}`);
-            return;
+            return res.status(401).json({error: "Wrong password"});
         };
-
+        if (user.active === 0){
+            console.log(user.active);
+            return res.status(403).json({error: "Account disabled"})
+        };
+        //Pupulate, sign and send JWT token wiht user data
         const jwtPayload = {
             id: user.user_id,
             username: user.username_csr,
@@ -56,17 +73,28 @@ exports.login = async (req, res) => {
             user_subdivisions: user.user_subdivisions
         };
         const token = jwt.sign(jwtPayload, config.jwtSecret);
-
         res.status(200).json(token);
+    } catch(error) {
+        return res.status(500).json({error: error});
     };
 };
 
+/**
+ * @async - generate new user apssword and send it to users mobile phone number
+ */
 exports.resetPassword = async (req, res) => {
     try{
-        let username = req.params.username_csr;
+        let username = req.params.username_csr; // TODO check if parameter is sent
+        //Validate input
+        let validateCsr = validate.isLength(username, { min: 3, max: 3 });
+        if (!validateCsr) {
+            return res.status(401).json({ error: "Bad CSR format" });
+        };
+        //Fetch users object form DB
         const user = await knex("users")
             .first("phone_num", "user_id", "username_csr")
             .where({ username_csr: username });
+        //If user is found, generate, hash and update new password, then send it via Nexmo SMS gate to mobile number
         if (user) {
             let newPassword = await generator.generate({ length: 5, numbers: true }); // TODO make stronger for poroduction
             let hash = await bcrypt.hashSync(newPassword, saltRounds);
@@ -76,42 +104,60 @@ exports.resetPassword = async (req, res) => {
                 .update({ hash: hash });
             if (updated > 0) {
                 nexmo.message.sendSms("NetInser", "+48" + user.phone_num, newPassword);
-                return res.status(200).send(`Password for user ${username} has been sent to ${user.phone_num}`);
+                return res.status(200).json({message: "New password sent"});
             } else {
-                return res.status(404).send(`User ${username} not found`);
+                return res.status(404).json({error: "Password not updated"});
             };
+        //If no user found, send 404
         } else {
-            return res.status(404).send(`User not found`);
+            return res.status(404).json({ error: "User not found"});
         };
     } catch (error){
-        return res.status(500).send(error);
+        return res.status(500).json({error: error});
     };
 };
 
+/**
+ * @async - sets a new password from input
+ */
 exports.newPassword = async (req, res) => {
-    const id = req.params.user_id;
-    const { password, newPassword } = req.body;
-
-    if (!(password && newPassword)) {
-        return res.status(400).send("Request body params missing");
-    };
-
-    const user = await knex("users")
-        .where({ user_id: id })
-        .first();
-    if (user) {
-        const passwordIsValid = await bcrypt.compareSync(password, user.hash);
-        if (passwordIsValid) {
-            const hash = bcrypt.hashSync(newPassword, saltRounds);
-            await knex("users")
-                .where({ user_id: id })
-                .update({ hash: hash });
-            return res.status(200).send(`New password set for user ${id} `);
-        } else {
-            return res.status(401).send("Wrong password");
+    try {
+        const id = req.params.user_id;
+        const { password, newPassword } = req.body;
+        //Check if all input parameters are sent
+        if (!(password && newPassword)) {
+            return res.status(400).send("Request body params missing");
         };
-    } else {
-        return res.status(404).send("no user of that id found")
-    };
+        //Input validation
+        let validatePassword = validate.isLength(password, { min: 3, max: 20 });
+        let validateNewPassword = validate.isLength(newPassword, { min: 3, max: 20 });
+        if (!validatePassword) {
+            return res.status(400).json({ error: "Bad password format" });
+        } else if (!validateNewPassword) {
+            return res.status(400).json({ error: "Bad new password format" });
+        };
+        //Fetch user object from DB
+        const user = await knex("users")
+            .where({ user_id: id })
+            .first();
+        //If found, check current password
+        if (user) {
+            const passwordIsValid = await bcrypt.compareSync(password, user.hash);
+            //If password matches, hash new password and update in DB
+            if (passwordIsValid) {
+                const hash = bcrypt.hashSync(newPassword, saltRounds);
+                await knex("users")
+                    .where({ user_id: id })
+                    .update({ hash: hash });
+                return res.status(200).json({ message: "New password set" });
+            } else {
+                return res.status(401).json({ error: "Wrong password" });
+            };
+        } else {
+            return res.status(404).json({ error: "User not found" });
+        };
+    } catch(error) {
+        res.status(500).json({error:error});
+    }; 
 };
 
