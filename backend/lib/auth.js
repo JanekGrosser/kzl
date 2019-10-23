@@ -30,11 +30,13 @@ exports.login = async (req, res) => {
         //Input format validation
         let validateCsr = validate.isLength(username_csr, { min: 3, max: 3 });
         let validatePassword = validate.isLength(password, {min:3, max: 20});
-        if (!validateCsr) {
-            return res.status(401).json({error: "Bad CSR format"});
-        } else if (!validatePassword){
-            return res.status(401).json({error: "Bad password format" });
-        };
+        
+        let invalidInputs = [];
+
+        if (!validateCsr) invalidInputs.push("username_csr");
+        if (!validatePassword) invalidInputs.push("password");
+
+        if (invalidInputs.length > 0) return res.status(400).json({ invalidInputs: invalidInputs });
         //Fetch user object with hash from DB
         const user = await knex("users_auth_view")
             .where({ username_csr })
@@ -88,9 +90,7 @@ exports.resetPassword = async (req, res) => {
         let username = req.params.username_csr; // TODO check if parameter is sent
         //Validate input
         let validateCsr = validate.isLength(username, { min: 3, max: 3 });
-        if (!validateCsr) {
-            return res.status(401).json({ error: "Bad CSR format" });
-        };
+        if (!validateCsr) return res.status(400).json({ error: "Bad CSR format" });
         //Fetch users object form DB
         const user = await knex("users")
             .first("phone_num", "user_id", "username_csr")
