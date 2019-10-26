@@ -38,11 +38,8 @@ exports.getCurrentShifts = async (req, res) => {
  */
 exports.getUsersCalendars = async (req, res) => {
     try {
-        let currentDate = new Date();
-        let currentDayofMonth = currentDate.getDate();
-        console.log(currentDayofMonth);
         let id = req.params.user_id;
-        let monthId = req.query.monthId;
+        let monthId = req.query.month_id;
         let shifts = await knex("man_shifts")
             .select("shift_id", "month_id", "day_number", "status_id", "user_last_change")
             .where({user_id:id})

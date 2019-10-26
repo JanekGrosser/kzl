@@ -24,11 +24,15 @@ class AuthService {
     }
 
     isPriviligedRole() {
-        return this.data.role && this.data.role !== 'tec';
+        return this.data.role && !this.isRegularRole() && !this.isSuperUserRole();
     }
 
     isSuperUserRole() {
-        return this.data.role && ["adm", "koz", "pre"].includes(this.data.role);
+        return this.data.role && ["adm", "koz"].includes(this.data.role);
+    }
+
+    isRegularRole() {
+        return this.data.role && ["ser", "ins"].includes(this.data.role);
     }
 
     getUserData() {
@@ -37,6 +41,10 @@ class AuthService {
 
     getUsername() {
         return this.data.first_name + " " + this.data.last_name;
+    }
+
+    getUserRoleId() {
+        return this.data.role_id;
     }
 
     isLoggedIn() {
@@ -60,6 +68,10 @@ class AuthService {
             axios.defaults.headers.common['Authorization'] = undefined;
             res();
         });
+    }
+
+    getLoggedInUserId() {
+        return this.data.id;
     }
 
     changePassword(password, newPassword) {

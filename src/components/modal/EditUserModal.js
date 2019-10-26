@@ -3,7 +3,7 @@ import { Modal, Button, Form, Alert, ListGroup } from "react-bootstrap";
 import l from "../../common/lang";
 import PropTypes from "prop-types";
 import axios from "axios";
-import stringUtil from "../../util/stringUtil";
+import util from "../../util";
 
 var lang = l();
 
@@ -55,7 +55,7 @@ class EditUserModal extends Component {
                     this.setState({
                         alert: true,
                         error: false,
-                        message: stringUtil.format(lang.userEdited, userToSave)
+                        message: this.UNSAFE_componentWillUpdate.format(lang.userEdited, userToSave)
                     });
                 })
                 .catch(err => {
@@ -63,7 +63,7 @@ class EditUserModal extends Component {
                     this.setState({
                         alert: true,
                         error: true,
-                        message: stringUtil.format(lang.userEditError, userToSave)
+                        message: util.format(lang.userEditError, userToSave)
                     })
                 });
         }
@@ -78,7 +78,7 @@ class EditUserModal extends Component {
                     this.props.onUserDelete(this.state.selectedUser);
                     this.setState({
                         alert: true,
-                        message: stringUtil.format(lang.userDeleted, userToDelete)
+                        message: util.format(lang.userDeleted, userToDelete)
                     });
                 })
                 .catch((err) => {
@@ -86,7 +86,7 @@ class EditUserModal extends Component {
                     this.setState({
                         alert: true,
                         error: true,
-                        message: stringUtil.format(lang.userDeleteError, userToDelete)
+                        message: util.format(lang.userDeleteError, userToDelete)
                     })
                 })
         }
