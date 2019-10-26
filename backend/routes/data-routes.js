@@ -5,8 +5,13 @@ const dataController = require("../lib/data");
 
 const middleware = require("../middleware/middleware");
 
+
 router.get("/current-calendar/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm", "koo", "koz"]), dataController.getCurrentShifts);
 router.get("/users-calendars/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm", "koo", "koz"]), dataController.getUsersCalendars);
+router.post("/users-calendars/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm", "koo", "koz"]), dataController.saveUsersCalendars);
+
+
+//Dictionary tables routes TODO move to separate file
 router.get("/subdivisions", middleware.checkJwt, dataController.getSubdivisionsDictionary);
 router.get("/shifts", middleware.checkJwt, dataController.getShiftsDictionary);
 router.get("/roles", middleware.checkJwt, dataController.getRolesDictionary);

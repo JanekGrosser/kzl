@@ -36,6 +36,9 @@ exports.getCurrentShifts = async (req, res) => {
  */
 exports.getUsersCalendars = async (req, res) => {
     try {
+        let currentDate = new Date();
+        let currentDayofMonth = currentDate.getDate();
+        console.log(currentDayofMonth);
         let id = req.params.user_id;
         let monthId = req.query.monthId;
         let shifts = await knex("man_shifts")
@@ -43,13 +46,64 @@ exports.getUsersCalendars = async (req, res) => {
             .where({user_id:id})
             .andWhere({month_id: monthId})
             .orderBy([{column: "day_number"}, {column: "shift_id"}])
-        res.status(200).json(shifts);
+        res.status(200).json({shifts: shifts});
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);
     };
 };
+/**
+ * @async - Save calendar TODO make separate cases for saving, sending to accept and so on
+ */
+exports.saveUsersCalendars = async (req, res) => {
+    try {
+        console.log(res.locals)
+        //Check requet params
+        if(!req.body.shifts) {
+            return res.status(400).json({error:"Check reqest params"})
+        };
 
+        let userId = req.params.user_id;
+        const {shifts} = req.body;
+        //TODO VALIDATE
+        // console.log(shifts);
+
+        let monthId  = shifts[0].month_id
+        let yearMonth = await knex("months").first().where({ month_id: monthId});
+        let now = new Date();
+        let insert = shifts.map(function (shift) {
+            // console.log(shift);
+            shift.user_id = userId;
+            shift.status_id = 1;
+            shift.date = yearMonth.year_month + "-" + shift.day_number;
+            shift.user_last_change = now;
+            return shift;
+        });
+        let trx = await knex.transaction();
+        let deleted = await trx("man_shifts")
+        .where({ user_id: userId }).andWhere({ month_id: monthId})
+        .del()
+        .catch((err=>{
+            trx.rollback();
+            throw Error(err);
+        }));
+        console.log(deleted);
+        await trx("man_shifts")
+        .insert(insert)
+        .then(()=>{
+            trx.commit();
+            return res.status(201).json({ ok: "Need something in reponse?" });
+        })
+        .catch((err => {
+            trx.rollback();
+            throw Error(err);
+        }));
+        
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    };
+};
 
 
 //####DICTIONARY TABLES API####
