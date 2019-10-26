@@ -1,8 +1,6 @@
 "use-strict";
-//TODO add missing try catch blocks
-//TODO consider always using username_csr instead od user_id in requests
-//TODO add validator
-//TODO refactor to ensure not blocking the Event Loop
+
+//TODO check to ensure not blocking the Event Loop
 
 
 const knex = require("../config/knex");
@@ -24,8 +22,9 @@ exports.getCurrentShifts = async (req, res) => {
             .orderBy([{ column: "date" }, { column: "shift_id" }]);
         //Send shifts as response
         return res.status(200).json(shifts);   
-    } catch (err){
-        return res.status(500).send(err)
+    } catch (error){
+        console.log(error);
+        return res.sendStatus(500);
     };
 };
 
@@ -35,7 +34,8 @@ exports.getSubdivisionsDictionary = async (req, res) => {
         return res.status(200).json(subdivisions);
 
     }catch(error){
-        res.sendStatus(500).end();
+        console.log(error);
+        return res.sendStatus(500);
     };
 };
 
@@ -45,7 +45,8 @@ exports.getRolesDictionary = async (req, res) => {
         return res.status(200).json(roles);
 
     }catch(error){
-        res.sendStatus(500).end();
+        console.log(error);
+        return res.sendStatus(500);
     };
 };
 
@@ -55,7 +56,8 @@ exports.getShiftsDictionary = async (req, res) => {
         return res.status(200).json(shifts);
 
     }catch(error){
-        res.sendStatus(500).end();
+        console.log(error);
+        return res.sendStatus(500);
     };
 };
 
@@ -65,6 +67,18 @@ exports.getStatusDictionary = async (req, res) => {
         return res.status(200).json(status);
 
     } catch (error) {
-        res.sendStatus(500).end();
+        console.log(error);
+        return res.sendStatus(500);
+    };
+};
+
+exports.getMonthsDictionary = async (req, res) => {
+    try {
+        const months = await knex("months").select();
+        return res.status(200).json(months);
+
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
     };
 };
