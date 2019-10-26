@@ -11,6 +11,7 @@ const knex = require('knex')(
             database: config.db.database,
             port: config.db.port
         },
+        pool:{min:2, max: 10},
         debug: true,
         asyncStackTraces: true
     }
