@@ -295,6 +295,7 @@ exports.editUser = async (req, res) => {
         await trx("users_subdivisions")
         .insert(insertQueryArray)
         .then(()=>{
+            trx.commit();
             return res.status(201).json({ message: "User updated", updatedUserId: id });
         })
         .catch((err) => {
