@@ -89,8 +89,8 @@ exports.getCurrentMonth = async (req, res) => {
         let currentMonth = currentDate.getMonth() + 1;
         let currentYear = currentDate.getFullYear();
         //Concatenate year and month and add wildcard % symbol for day
-        let dateQueryString = currentYear + "-" + currentMonth + "%";
-        const months = await knex("months").first().where("year_month", "like", dateQueryString);
+        let dateQueryString = currentYear + "-" + currentMonth;
+        const months = await knex("months").first().where({year_month:dateQueryString});
         return res.status(200).json(months);
     } catch (error) {
         console.log(error);
