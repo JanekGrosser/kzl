@@ -279,7 +279,6 @@ exports.editUser = async (req, res) => {
         });
         console.log("***deleted subs:" +deletedSubdivisions);
         //Check if user has been assigned with more than one subdivision
-        // if (deletedSubdivisions !== 1) return res.status(500).json({ error: "User update error, rolled back" });
         //Generate an array wich is passed as query to insert multiple rows into join table
         //TODO Change to accept array input!!*****************************
         let subdivisionsIdsArray = subdivision_id.split(",");

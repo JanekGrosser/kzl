@@ -1,10 +1,12 @@
 "use-strict";
 
 //TODO check to ensure not blocking the Event Loop
-
-
 const knex = require("../config/knex");
 
+
+/**
+ * @async - Get selected user shifts calendar for the current month 
+ */
 exports.getCurrentShifts = async (req, res) => {
     try {
         let id = req.params.user_id;
@@ -19,7 +21,7 @@ exports.getCurrentShifts = async (req, res) => {
             .select("shift_id", "month_id", "day_number", "status_id")
             .where({ user_id: id })
             .andWhere("date", "like", dateQueryString)
-            .orderBy([{ column: "date" }, { column: "shift_id" }]);
+            .orderBy([{ column: "month_id" }, { column: "shift_id" }]);
         //Send shifts as response
         return res.status(200).json(shifts);   
     } catch (error){
@@ -27,6 +29,31 @@ exports.getCurrentShifts = async (req, res) => {
         return res.sendStatus(500);
     };
 };
+
+
+/**
+ * @async - Get selected user shifts callendar for selected month
+ */
+exports.getUsersCalendars = async (req, res) => {
+    try {
+        let id = req.params.user_id;
+        let monthId = req.query.monthId;
+        let shifts = await knex("man_shifts")
+            .select("shift_id", "month_id", "day_number", "status_id")
+            .where({user_id:id})
+            .andWhere({month_id: monthId})
+            .orderBy([{column: "day_number"}, {column: "shift_id"}])
+        res.status(200).json(shifts);
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    };
+};
+
+
+
+//####DICTIONARY TABLES API####
+//TODO move to separate file
 
 exports.getSubdivisionsDictionary = async (req, res) => {
     try{
