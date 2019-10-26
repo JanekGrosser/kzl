@@ -1,5 +1,6 @@
 "use-strict";
 //TODO add validator
+//Refactor more
 //TODO check to ensure not blocking the Event Loop -- So far soo good
 
 const bcrypt = require("bcrypt");
@@ -53,7 +54,7 @@ exports.getUser = async (req, res) => {
         if (user) {
             return res.status(200).json(user);
         } else {
-            return res.status(404).send(`User id ${id} not found`);
+            return res.status(404).json({error: "User not found"});
         };
     }catch(error){
         console.log(error);
@@ -88,8 +89,11 @@ exports.deleteUser = async (req, res) => {
  * Anyway, it works
  */
 exports.newUser = async (req, res) => {
+    // const trxProvider = knex.transactionProvider();
+    const trx = await knex.transaction(); //TODO refactor, may throw unhandled promise rejection on db connection error, just movr rollbacks to .catch methods I guess and then catch block can only handle non transaction related errors
     try {
         let newUserId;
+        let newUser;
         //Assign body values to local constans
         const {
             username_csr,
@@ -109,16 +113,14 @@ exports.newUser = async (req, res) => {
             && req.body.phone_num 
             && req.body.subdivision_id
             && req.body.role_id
-            && req.body.active)) {
-                return res.status(400).json({error: "Check request params"});
-        };
+            && req.body.active)) {return res.status(400).json({error: "Check request params"})};
         //Validate inputs
         let validateCsr = validate.isLength(username_csr, {min:3, max: 3});
         let validatePassword = validate.isLength(password, {min:3, max: 20});
         let validateFirstName = validate.isLength(first_name, {min:2, max: 40});
         let validateLastName = validate.isLength(last_name, {min:2, max: 40});
         let validatePhoneNum = validate.isMobilePhone(phone_num + '', "pl-PL");
-        let validateSubdivision = validate.isNumeric(subdivision_id +'', {min: 1, max: 128});
+        // let validateSubdivision = validate.isNumeric(subdivision_id +'');
         let validateRoleId = validate.isNumeric(role_id + '', {min: 1, max: 128});
         let validateActive = validate.isNumeric(active + '', {min: 0, max: 1});
 
@@ -130,7 +132,7 @@ exports.newUser = async (req, res) => {
         if (!validateFirstName) invalidInputs.push("first_name");
         if (!validateLastName) invalidInputs.push("last_name");
         if (!validatePhoneNum) invalidInputs.push("phone_num");
-        if (!validateSubdivision) invalidInputs.push("subdivision_id");
+        // if (!validateSubdivision) invalidInputs.push("subdivision_id");
         if (!validateRoleId) invalidInputs.push("role_id");
         if (!validateActive) invalidInputs.push("active");
 
@@ -140,44 +142,59 @@ exports.newUser = async (req, res) => {
         //Hash password
         const hash = await bcrypt.hash(password, saltRounds);
         //Insert values to users table
-        await knex("users")
+        let insertUser = await trx("users")
         .insert({ username_csr, first_name, last_name, phone_num, active, hash, role_id })
         //Then get new user ID
-        .then(async ()=>{
-            await knex("users")
-            .first("user_id")
-            .where({ username_csr: username_csr})
-            //Then insert subdivisions to users_subdivision join table
-            .then(async (id)=>{
-                newUserId = id.user_id;
-                //Check if there is more than one subdivision value
-                if (subdivision_id.length > 1) {
-                    //TODO change to expect array input!!************************************
-                    //Convert string into array
-                    let subdivisionsIdsArray = subdivision_id.split(",");
-                    let insertQueryArray = [];
-                    let usersSubdivisions;
-                    //Make query obcjects based on array
-                    subdivisionsIdsArray.forEach(element => {
-                        usersSubdivisions = {};
-                        usersSubdivisions.users_user_id = id.user_id;
-                        usersSubdivisions.subdivisions_subdivision_id = element;
-                        insertQueryArray.push(usersSubdivisions);
-                    });
-                    //Finally insert
-                    await knex("users_subdivisions").insert(insertQueryArray);
-                } else {
-                    //Or if just one subdivision just insert values
-                    let insertQuery = { users_user_id: id.user_id, subdivisions_subdivision_id: subdivision_id };
-                    await knex("users_subdivisions").insert(insertQuery);
-                };
-            });
-        });
-        return res.status(201).json({ message: "User created", newUserId: newUserId});
+        console.log(trx.isCompleted());
+        if (insertUser === 0) {
+            trx.rollback();
+            return res.status(500).json({error: "Insert error"});
+        } else {
+            newUser = await trx("users").first("user_id").where({ username_csr: username_csr });
+            console.log(trx.isCompleted());
+        };
+        //Then insert subdivisions to users_subdivision join table
+        if (newUser){
+            newUserId = newUser.user_id;
+            // console.log(newUser);
+            // console.log(newUserId);
+            //Check if there is more than one subdivision value
+            //TODO remove this if after changing to array input
+            if (subdivision_id.length > 1) { 
+                //TODO change to expect array input!!************************************
+                //Convert string into array
+                let subdivisionsIdsArray = subdivision_id.split(",");
+                let insertQueryArray = [];
+                let usersSubdivisions;
+                //Make query obcjects based on array
+                subdivisionsIdsArray.forEach(element => {
+                    usersSubdivisions = {};
+                    usersSubdivisions.users_user_id = newUser.user_id;
+                    usersSubdivisions.subdivisions_subdivision_id = element;
+                    insertQueryArray.push(usersSubdivisions);
+                });
+                //Finally insert
+                await trx("users_subdivisions").insert(insertQueryArray);
+                trx.commit();
+                console.log(trx.isCompleted());
+                return res.status(201).json({ message: "User created", newUserId: newUserId});
+                
+            } else { 
+                //Or if just one subdivision just insert values
+                let insertQuery = { users_user_id: newUser.user_id, subdivisions_subdivision_id: subdivision_id };
+                await trx("users_subdivisions").insert(insertQuery);
+                trx.commit();
+                console.log(trx.isCompleted());
+                return res.status(201).json({ message: "User created", newUserId: newUserId });
+            };
+        } else {
+            trx.rollback();
+            return res.status(500).json({error: "DB error, user inserted but id not found. Rolled back"});
+        };
     } catch (error) {
+        trx.rollback();
         console.log(error);
         return res.sendStatus(500);
-        
     };
 };
 
@@ -185,6 +202,7 @@ exports.newUser = async (req, res) => {
  * @async update user data in db
  */
 exports.editUser = async (req, res) => {
+    
     try {
         //Get id from path param
         const id = req.params.user_id;
@@ -213,18 +231,18 @@ exports.editUser = async (req, res) => {
         let validateFirstName = validate.isLength(first_name, { min: 2, max: 40 });
         let validateLastName = validate.isLength(first_name, { min: 2, max: 40 });
         let validatePhoneNum = validate.isMobilePhone(phone_num + '', "pl-PL");
-        let validateSubdivision = validate.isNumeric(subdivision_id + '', { min: 1, max: 128 });
+        // let validateSubdivision = validate.isNumeric(subdivision_id + '');
         let validateRoleId = validate.isNumeric(role_id + '', { min: 1, max: 128 });
         let validateActive = validate.isNumeric(active + '', { min: 0, max: 1 });
 
         //Array constains invalid inputs names
         let invalidInputs = [];
 
-        if (!validateCsr) invalidInputs.push("username_csr");
+        // if (!validateCsr) invalidInputs.push("username_csr");
         if (!validateFirstName) invalidInputs.push("first_name");
         if (!validateLastName) invalidInputs.push("last_name");
         if (!validatePhoneNum) invalidInputs.push("phone_num");
-        if (!validateSubdivision) invalidInputs.push("subdivision_id");
+        // if (!validateSubdivision) invalidInputs.push("subdivision_id");
         if (!validateRoleId) invalidInputs.push("role_id");
         if (!validateActive) invalidInputs.push("active");
         //If any invalid inputs, return 400
@@ -238,42 +256,51 @@ exports.editUser = async (req, res) => {
         user.role_id = role_id;
         user.active = active;
         
+
+        //Start transaction
+        const trx = await knex.transaction();
         //Send update query to DB and assign true/false update response from DB to variable
-        let updatedUser = await knex("users")
-            .where({ user_id:id })
-            .update(user);
+        let updatedUser = await trx("users")
+        .where({ user_id:id })
+        .update(user)
+        .catch((err)=>{
+            trx.rollback();
+            throw Error(err);
+        });
+        console.log("***UpdatedUser: "+ JSON.stringify(updatedUser));
         //Seperate query to assosiation table
-            await knex("users_subdivisions")
-            .where({users_user_id: id})
-            .delete()
-            .then(async(ok)=>{
-                //Check if user has been assigned with more than one subdivision
-                if (subdivision_id.length > 1) {
-                    //Generate an array wich is passed as query to insert multiple rows into join table
-                    //TODO Change to accept array input!!*****************************
-                    let subdivisionsIdsArray = subdivision_id.split(",");
-                    let insertQueryArray = [];
-                    let usersSubdivisions;
-                    subdivisionsIdsArray.forEach(element => {
-                        usersSubdivisions = {};
-                        usersSubdivisions.users_user_id = id;
-                        usersSubdivisions.subdivisions_subdivision_id = element;
-                        insertQueryArray.push(usersSubdivisions)
-                    });
-                    //Insert multiple divisions
-                    await knex("users_subdivisions").insert(insertQueryArray);
-                } else {
-                    //Insert one division
-                    await knex("users_subdivisions").insert({users_user_id:id, subdivisions_subdivision_id: subdivision_id})
-                };
-            });
-        //If ok send 201 and JSON with details
-        if (updatedUser > 0) {
-            return res.status(201).json({message: "User updated", updatedUserId: id});
-        } else {
-        //When there is no maching user in DB update variable will be set false, then return 404 response
-            return res.status(404).json({error: "User not found"});
-        };
+        if (updatedUser !== 1) return res.status(500).json({ error: "User update error, rolled back" });
+        let deletedSubdivisions = await trx("users_subdivisions")
+        .where({ users_user_id: id })
+        .delete()
+        .catch((err) => {
+            trx.rollback();
+            throw Error(err);
+        });
+        console.log("***deleted subs:" +deletedSubdivisions);
+        //Check if user has been assigned with more than one subdivision
+        // if (deletedSubdivisions !== 1) return res.status(500).json({ error: "User update error, rolled back" });
+        //Generate an array wich is passed as query to insert multiple rows into join table
+        //TODO Change to accept array input!!*****************************
+        let subdivisionsIdsArray = subdivision_id.split(",");
+        let insertQueryArray = [];
+        let usersSubdivisions;
+        subdivisionsIdsArray.forEach(element => {
+            usersSubdivisions = {};
+            usersSubdivisions.users_user_id = id;
+            usersSubdivisions.subdivisions_subdivision_id = element;
+            insertQueryArray.push(usersSubdivisions)
+        });
+        //Insert  divisions
+        await trx("users_subdivisions")
+        .insert(insertQueryArray)
+        .then(()=>{
+            return res.status(201).json({ message: "User updated", updatedUserId: id });
+        })
+        .catch((err) => {
+            trx.rollback();
+            throw Error(err);
+        });
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);
