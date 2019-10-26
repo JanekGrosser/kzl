@@ -238,7 +238,7 @@ exports.editUser = async (req, res) => {
         //Array constains invalid inputs names
         let invalidInputs = [];
 
-        // if (!validateCsr) invalidInputs.push("username_csr");
+        if (!validateCsr) invalidInputs.push("username_csr");
         if (!validateFirstName) invalidInputs.push("first_name");
         if (!validateLastName) invalidInputs.push("last_name");
         if (!validatePhoneNum) invalidInputs.push("phone_num");
