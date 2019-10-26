@@ -10,6 +10,7 @@ router.get("/subdivisions", middleware.checkJwt, dataController.getSubdivisionsD
 router.get("/shifts", middleware.checkJwt, dataController.getShiftsDictionary);
 router.get("/roles", middleware.checkJwt, dataController.getRolesDictionary);
 router.get("/status", middleware.checkJwt, dataController.getStatusDictionary);
+router.get("/current-month", middleware.checkJwt, dataController.getCurrentMonth);
 
 
 module.exports = router;
