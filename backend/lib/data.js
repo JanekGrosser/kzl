@@ -16,7 +16,7 @@ exports.getCurrentShifts = async (req, res) => {
         let dateQueryString = currentYear + "-" + currentMonth + "%";
         //Get requested shifts form db
         let shifts = await knex("man_shifts")
-            .select("shift_id", "month_id", "day_num", "status_id")
+            .select("shift_id", "month_id", "day_number", "status_id")
             .where({ user_id: id })
             .andWhere("date", "like", dateQueryString)
             .orderBy([{ column: "date" }, { column: "shift_id" }]);
