@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: KZLv3
 -- ------------------------------------------------------
--- Server version	5.7.27-0ubuntu0.18.04.1
+-- Server version	5.7.27-0ubuntu0.18.04.1-log
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -23,15 +23,15 @@ DROP TABLE IF EXISTS `man_shifts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `man_shifts` (
-  `man_shift_id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` smallint(6) NOT NULL,
-  `date` date NOT NULL,
   `month_id` int(11) NOT NULL,
+  `day_number` tinyint(2) NOT NULL,
   `shift_id` tinyint(4) NOT NULL,
   `status_id` tinyint(4) NOT NULL,
   `user_last_change` timestamp(2) NOT NULL DEFAULT CURRENT_TIMESTAMP(2) ON UPDATE CURRENT_TIMESTAMP(2),
-  PRIMARY KEY (`man_shift_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1001 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  KEY `Asc_unique_key` (`user_id`,`month_id`,`day_number`,`shift_id`) USING BTREE,
+  KEY `desc_index` (`user_id`,`month_id`,`day_number`,`shift_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -43,7 +43,7 @@ DROP TABLE IF EXISTS `months`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `months` (
   `month_id` int(11) NOT NULL AUTO_INCREMENT,
-  `year_month` date NOT NULL,
+  `year_month` varchar(7) NOT NULL,
   PRIMARY KEY (`month_id`),
   UNIQUE KEY `year_month_UNIQUE` (`year_month`)
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
@@ -88,10 +88,10 @@ DROP TABLE IF EXISTS `status`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `status` (
   `status_id` tinyint(4) NOT NULL AUTO_INCREMENT,
-  `status` char(4) COLLATE utf8_unicode_ci NOT NULL,
+  `status` varchar(20) CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`status_id`),
   UNIQUE KEY `status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -120,7 +120,7 @@ CREATE TABLE `users` (
   `username_csr` char(3) COLLATE utf8_unicode_ci NOT NULL,
   `first_name` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
   `last_name` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
-  `phone_num` int(11) NOT NULL,
+  `phone_num` varchar(9) COLLATE utf8_unicode_ci NOT NULL,
   `active` tinyint(1) NOT NULL,
   `hash` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `role_id` tinyint(4) NOT NULL,
@@ -129,7 +129,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `username_csr` (`username_csr`),
   KEY `fk_users_1_idx` (`role_id`),
   CONSTRAINT `fk_users_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=193 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=201 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -238,4 +238,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-10-23 19:44:52
+-- Dump completed on 2019-10-27 14:20:22
