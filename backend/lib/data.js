@@ -14,13 +14,15 @@ exports.getCurrentShifts = async (req, res) => {
         let currentDate = new Date();
         let currentMonth = currentDate.getMonth() + 1;
         let currentYear = currentDate.getFullYear();
-        //Concatenate year and month and add wildcard % symbol for day
-        let dateQueryString = currentYear + "-" + currentMonth + "%";
+        //Concatenate year and month
+        let dateQueryString = currentYear + "-" + currentMonth;
+        //Get current months id
+        let yearMonth = await knex("months").first().where({ year_month: dateQueryString });
         //Get requested shifts form db
         let shifts = await knex("man_shifts")
             .select("shift_id", "month_id", "day_number", "status_id")
             .where({ user_id: id })
-            .andWhere("date", "like", dateQueryString)
+            .andWhere({ month_id: yearMonth.month_id})
             .orderBy([{ column: "month_id" }, { column: "shift_id" }]);
         //Send shifts as response
         return res.status(200).json(shifts);   
@@ -53,12 +55,14 @@ exports.getUsersCalendars = async (req, res) => {
     };
 };
 /**
- * @async - Save calendar TODO make separate cases for saving, sending to accept and so on
+ * @async - Save calendar in reservation phase
  */
+
 exports.saveUsersCalendars = async (req, res) => {
     try {
         console.log(res.locals)
-        //Check requet params
+        //Check requet params 
+        //TODO more request validation
         if(!req.body.shifts) {
             return res.status(400).json({error:"Check reqest params"})
         };
@@ -69,13 +73,13 @@ exports.saveUsersCalendars = async (req, res) => {
         // console.log(shifts);
 
         let monthId  = shifts[0].month_id
-        let yearMonth = await knex("months").first().where({ month_id: monthId});
+        // let yearMonth = await knex("months").first().where({ month_id: monthId});
         let now = new Date();
         let insert = shifts.map(function (shift) {
             // console.log(shift);
             shift.user_id = userId;
             shift.status_id = 1;
-            shift.date = yearMonth.year_month + "-" + shift.day_number;
+            // shift.date = yearMonth.year_month + "-" + shift.day_number;
             shift.user_last_change = now;
             return shift;
         });
@@ -99,6 +103,62 @@ exports.saveUsersCalendars = async (req, res) => {
             throw Error(err);
         }));
         
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    };
+};
+
+
+
+/**
+ * @async - Save calendar by KZ in approval phase
+ */
+
+exports.saveApprovalCalendars = async (req, res) => {
+    try {
+        console.log(res.locals)
+        //Check requet params
+        if (!req.body.shifts) {
+            return res.status(400).json({ error: "Check reqest params" })
+        };
+
+        let userId = req.params.user_id;
+        const { shifts } = req.body;
+        //TODO VALIDATE
+        // console.log(shifts);
+
+        let monthId = shifts[0].month_id
+        let yearMonth = await knex("months").first().where({ month_id: monthId });
+        let now = new Date();
+        let insert = shifts.map(function (shift) {
+            // console.log(shift);
+            shift.user_id = userId;
+            // shift.status_id = 1;
+            shift.date = yearMonth.year_month + "-" + shift.day_number;
+            shift.user_last_change = now;
+            return shift;
+        });
+        let trx = await knex.transaction();
+        let deleted = await trx("man_shifts")
+            .where({ user_id: userId }).andWhere({ month_id: monthId })
+            .del()
+            .catch((err => {
+                trx.rollback();
+                throw Error(err);
+            }));
+        console.log(deleted);
+        await trx("man_shifts")
+            .insert(insert)
+            .then(() => {
+                trx.commit();
+                return res.status(201).json({ ok: "Need something in reponse?" });
+            })
+            .catch((err => {
+                trx.rollback();
+                throw Error(err);
+            }));
+
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);
