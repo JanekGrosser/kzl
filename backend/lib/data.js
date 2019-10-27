@@ -72,14 +72,12 @@ exports.saveUsersCalendars = async (req, res) => {
         //TODO VALIDATE
         // console.log(shifts);
 
-        let monthId  = shifts[0].month_id
-        // let yearMonth = await knex("months").first().where({ month_id: monthId});
+        let monthId  = shifts[0].month_id;
         let now = new Date();
         let insert = shifts.map(function (shift) {
             // console.log(shift);
             shift.user_id = userId;
             shift.status_id = 1;
-            // shift.date = yearMonth.year_month + "-" + shift.day_number;
             shift.user_last_change = now;
             return shift;
         });
@@ -129,13 +127,9 @@ exports.saveApprovalCalendars = async (req, res) => {
         // console.log(shifts);
 
         let monthId = shifts[0].month_id
-        let yearMonth = await knex("months").first().where({ month_id: monthId });
         let now = new Date();
         let insert = shifts.map(function (shift) {
-            // console.log(shift);
             shift.user_id = userId;
-            // shift.status_id = 1;
-            shift.date = yearMonth.year_month + "-" + shift.day_number;
             shift.user_last_change = now;
             return shift;
         });
