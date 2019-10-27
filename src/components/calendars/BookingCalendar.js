@@ -113,24 +113,26 @@ class BookingCalendar extends Component {
     }
 
     onDayClicked(shiftId, dayNumber) {
-        var currentShifts = JSON.parse(
-            JSON.stringify(this.state.currentShifts)
-        );
-        if (currentShifts[shiftId] && currentShifts[shiftId][dayNumber]) {
-            var statusId = currentShifts[shiftId][dayNumber].status_id;
-            if (statusId === 1) {
-                delete currentShifts[shiftId][dayNumber];
-            }
-        } else {
-            currentShifts[shiftId] = Object.assign(currentShifts[shiftId], {
-                [dayNumber]: {
-                    status_id: 1
+        if (!this.state.calendarInApproval) {
+            var currentShifts = JSON.parse(
+                JSON.stringify(this.state.currentShifts)
+            );
+            if (currentShifts[shiftId] && currentShifts[shiftId][dayNumber]) {
+                var statusId = currentShifts[shiftId][dayNumber].status_id;
+                if (statusId === 1) {
+                    delete currentShifts[shiftId][dayNumber];
                 }
+            } else {
+                currentShifts[shiftId] = Object.assign(currentShifts[shiftId], {
+                    [dayNumber]: {
+                        status_id: 1
+                    }
+                });
+            }
+            this.setState({
+                currentShifts
             });
         }
-        this.setState({
-            currentShifts
-        });
     }
 
     onSave() {
@@ -238,7 +240,10 @@ class BookingCalendar extends Component {
                             </option>
                         ))}
                     </Form.Control>
-                    <Alert show={this.state.calendarInApproval} variant={"info"}>
+                    <Alert
+                        show={this.state.calendarInApproval}
+                        variant={"info"}
+                    >
                         Wybrany kalendarz został wysłany do zatwierdzenia!
                     </Alert>
                     {this.state.selectedMonthId !== -1 &&
@@ -278,7 +283,12 @@ class BookingCalendar extends Component {
                             )}
                         </ul>
                         <Table
-                            className={"booking " + (this.state.calendarInApproval ? "approval" : "editable") }
+                            className={
+                                "booking " +
+                                (this.state.calendarInApproval
+                                    ? "approval"
+                                    : "editable")
+                            }
                             bordered
                             responsive
                         >
