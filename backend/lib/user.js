@@ -8,6 +8,26 @@ const validate = require("validator");
 const knex = require("../config/knex");
 const saltRounds = 10;
 
+
+/**
+ * @async - Get sorted list of users sent to approval timestamps
+ */
+exports.getUserApprovalTimestamp = async (req,res) => {
+    try {
+        if (!req.params.month_id) return res.status(400).json({error:"Check request params"});
+        let monthId = req.params.month_id;
+        let timestamp = await knex("approval_sent_at")
+        .where({ month_id: monthId })
+        .select()
+        .orderBy("sent_at", "desc");
+        return res.status(200).json(timestamp);
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    };
+};
+
+
 /**
  * @async - Gets all users list
  * TODO add subdivisions parameter and query
