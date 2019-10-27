@@ -44,7 +44,7 @@ exports.getUsersCalendars = async (req, res) => {
         let id = req.params.user_id;
         let monthId = req.query.monthId;
         let shifts = await knex("man_shifts")
-            .select("shift_id", "month_id", "day_number", "status_id")
+            .select("shift_id", "month_id", "day_number", "status_id", "user_last_change")
             .where({user_id:id})
             .andWhere({month_id: monthId})
             .orderBy([{column: "day_number"}, {column: "shift_id"}])
@@ -127,10 +127,10 @@ exports.saveApprovalCalendars = async (req, res) => {
         // console.log(shifts);
 
         let monthId = shifts[0].month_id
-        let now = new Date();
+        // let now = new Date();
         let insert = shifts.map(function (shift) {
             shift.user_id = userId;
-            shift.user_last_change = now;
+            // shift.user_last_change = now;
             return shift;
         });
         let trx = await knex.transaction();
