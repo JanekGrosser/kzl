@@ -60,6 +60,10 @@ html {
                 margin: $calendar-margin 0 0 $calendar-margin;
             }
 
+            .alert {
+                margin: $calendar-margin 0;
+            }
+
             .input-group {
                 padding: 0 20px;
             }
@@ -90,7 +94,6 @@ html {
 
             table.booking {
                 td {
-                    cursor: pointer;
                     &:hover {
                         background-color: rgba(0, 0, 0, 0.3);
                     }
@@ -182,6 +185,9 @@ html {
                 }
 
                 &.editable {
+                    td {
+                        cursor: pointer;
+                    }
                     td.editable {
                         &:hover {
                             i {
@@ -193,6 +199,11 @@ html {
                                 }
                             }
                         }
+                    }
+                }
+                &.approval {
+                    td {
+                        cursor: not-allowed;
                     }
                 }
             }
@@ -224,7 +235,14 @@ html {
                 }
             }
 
-            @media only screen and (max-width: 767px) {
+            .show-mobile {
+                display: none;
+            }
+
+            @media only screen and (max-width: 991px) {
+                .show-mobile {
+                    display: block;
+                }
                 .dropdown {
                     display: none;
                 }
