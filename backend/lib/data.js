@@ -70,11 +70,10 @@ exports.saveUsersCalendars = async (req, res) => {
         // console.log(shifts);
 
         let monthId  = shifts[0].month_id;
+        let statusId = shifts[0].status_id;
         let now = new Date();
         let insert = shifts.map(function (shift) {
-            // console.log(shift);
             shift.user_id = userId;
-            shift.status_id = 1;
             shift.user_last_change = now;
             return shift;
         });
@@ -87,6 +86,14 @@ exports.saveUsersCalendars = async (req, res) => {
             throw Error(err);
         }));
         console.log(deleted);
+        if (statusId === 2) {
+            await trx("approval_sent_at")
+            .insert({user_id: userId, month_id: monthId, sent_at: now})
+            .catch((err)=>{
+                trx.rollback();
+                throw Error(err);
+            });
+        }
         await trx("man_shifts")
         .insert(insert)
         .then(()=>{
@@ -124,10 +131,8 @@ exports.saveApprovalCalendars = async (req, res) => {
         // console.log(shifts);
 
         let monthId = shifts[0].month_id
-        // let now = new Date();
         let insert = shifts.map(function (shift) {
             shift.user_id = userId;
-            // shift.user_last_change = now;
             return shift;
         });
         let trx = await knex.transaction();
