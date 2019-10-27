@@ -26,6 +26,7 @@ class LoginForm extends Component {
                 this.props.history.push("/");
             })
             .catch((err) => {
+                console.log(err);
                 var error;
                 switch(err.response.status) {
                     case 400: 

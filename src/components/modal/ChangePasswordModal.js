@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { Modal, Button, Form, Alert } from "react-bootstrap";
 import authService from "../../services/authService";
 import l from "../../common/lang";
-import stringUtil from "../../util/stringUtil";
 
 var lang = l();
 

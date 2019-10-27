@@ -6,7 +6,8 @@ import Footer from '../components/Footer';
 import axios from "axios";
 import { Route } from "react-router-dom";
 import UsersComponent from "../components/UsersComponent";
-import CalendarComponent from "../components/CalendarComponent";
+import CurrentCalendar from "../components/calendars/CurrentCalendar";
+import BookingCalendar from "../components/calendars/BookingCalendar";
 
 class LoggedInView extends Component {
 
@@ -82,10 +83,13 @@ class LoggedInView extends Component {
             <Header {...this.state} onAddUser={this.onAddUser}/>
                 <main role="main" className="main-view">
                     <Route path="/users">
-                        { authService.isSuperUserRole() ? <UsersComponent pageSize={10} {...this.state} onUserChange={this.onUserChange} onUserDelete={this.onUserDelete} ></UsersComponent> : "" }
+                        { authService.isPriviligedRole() ? <UsersComponent pageSize={10} {...this.state} onUserChange={this.onUserChange} onUserDelete={this.onUserDelete} ></UsersComponent> : "" }
                     </Route>
                     <Route exact path="/">
-                        <CalendarComponent/>
+                        { authService.isRegularRole() ? <CurrentCalendar/> : ""}
+                    </Route>
+                    <Route exact path="/booking">
+                        { authService.isRegularRole() ? <BookingCalendar/> : ""}
                     </Route>
                 </main>
             <Footer/>

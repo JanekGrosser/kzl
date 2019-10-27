@@ -65,6 +65,8 @@ class Header extends Component {
           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="navbar-nav mr-auto">
+              { authService.isRegularRole() ? <Link className="nav-link" to="/">Kalendarz biezacy</Link> : "" }
+              { authService.isRegularRole() ? <Link className="nav-link" to="/booking">Kalendarz rezerwacji grafiku</Link> : "" }
               { authService.isSuperUserRole() ? <Nav.Link onClick={this.openAddUserModal}>{lang.addUser}</Nav.Link> : "" }
               { authService.isPriviligedRole() ? <Link className="nav-link" to="/users">{lang.users}</Link> : "" }
             </Nav>

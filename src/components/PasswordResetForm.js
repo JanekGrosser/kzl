@@ -24,7 +24,7 @@ class PasswordResetForm extends Component {
         authService.resetPassword(this.state.csr)
             .then(() => {
                 this.setState({
-                    message: lang.success,
+                    message: lang.passwordSentSMS,
                     error: ""
                 })
             })

@@ -3,7 +3,7 @@ import { Modal, Button, Form, Alert, ListGroup } from "react-bootstrap";
 import l from "../../common/lang";
 import PropTypes from "prop-types";
 import axios from "axios";
-import stringUtil from "../../util/stringUtil";
+import util from "../../util";
 
 var lang = l();
 
@@ -59,7 +59,7 @@ class AddUserModal extends Component {
                     newUser: this.getDefaultUserState(),
                     alert: true,
                     error: false,
-                    message: stringUtil.format(lang.userAdded, userToSave)
+                    message: util.format(lang.userAdded, userToSave)
                 });
             })
             .catch(err => {
@@ -67,7 +67,7 @@ class AddUserModal extends Component {
                 this.setState({
                     alert: true,
                     error: true,
-                    message: stringUtil.format(lang.userAddedError, userToSave)
+                    message: util.format(lang.userAddedError, userToSave)
                 });
             });
     }
