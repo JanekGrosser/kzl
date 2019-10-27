@@ -178,3 +178,18 @@ exports.getCurrentMonth = async (req, res) => {
         return res.sendStatus(500);
     };
 };
+
+exports.getFollowingMonths = async (req, res) => {
+    try {
+        let currentDate = new Date();
+        let currentMonth = currentDate.getMonth() + 1;
+        let currentYear = currentDate.getFullYear();
+        //Concatenate year and month and add wildcard % symbol for day
+        let dateQueryString = currentYear + "-" + currentMonth;
+        const months = await knex("months").select().where("year_month", ">=", dateQueryString).limit(6).orderBy("month_id");
+        return res.status(200).json(months);
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    };
+};

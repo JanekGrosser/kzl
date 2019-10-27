@@ -18,6 +18,7 @@ router.get("/roles", middleware.checkJwt, dataController.getRolesDictionary);
 router.get("/status", middleware.checkJwt, dataController.getStatusDictionary);
 router.get("/months", middleware.checkJwt, dataController.getMonthsDictionary);
 router.get("/current-month", middleware.checkJwt, dataController.getCurrentMonth);
+router.get("/following-months", middleware.checkJwt, dataController.getFollowingMonths);
 
 
 
