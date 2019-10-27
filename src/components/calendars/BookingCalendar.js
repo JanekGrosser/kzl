@@ -2,14 +2,14 @@ import React, { Component } from "react";
 import axios from "axios";
 import authService from "../../services/authService";
 import shiftService from "../../services/shiftService";
-import { Table, Form, Button, ButtonToolbar } from "react-bootstrap";
+import { Table, Alert, Form, Button, ButtonToolbar } from "react-bootstrap";
 import util from "../../util";
 
 /**
  * ID Helper
  *
  * 1 - editable - on save/local storage,
- * on send - 2 - approal
+ * on send - 2 - approval
  */
 
 class BookingCalendar extends Component {
@@ -22,7 +22,8 @@ class BookingCalendar extends Component {
             months: [],
             selectedMonthId: -1,
             shifts: {},
-            statuses: []
+            statuses: [],
+            calendarInApproval: false
         };
 
         this.onMonthSelected = this.onMonthSelected.bind(this);
@@ -93,7 +94,7 @@ class BookingCalendar extends Component {
     changeStatus() {}
 
     getStatusIdFromCurrentShifts(shift_id, day_number) {
-        return this.state.currentShifts != {} &&
+        return this.state.currentShifts &&
             this.state.currentShifts[shift_id] &&
             this.state.currentShifts[shift_id][day_number]
             ? this.state.currentShifts[shift_id][day_number].status_id
@@ -104,6 +105,8 @@ class BookingCalendar extends Component {
         switch (status_id) {
             case 1:
                 return "editable";
+            case 2:
+                return "approval";
             default:
                 return "";
         }
@@ -116,9 +119,7 @@ class BookingCalendar extends Component {
         if (currentShifts[shiftId] && currentShifts[shiftId][dayNumber]) {
             var statusId = currentShifts[shiftId][dayNumber].status_id;
             if (statusId === 1) {
-                currentShifts[shiftId][dayNumber].status_id = 0;
-            } else {
-                currentShifts[shiftId][dayNumber].status_id = 1;
+                delete currentShifts[shiftId][dayNumber];
             }
         } else {
             currentShifts[shiftId] = Object.assign(currentShifts[shiftId], {
@@ -138,15 +139,44 @@ class BookingCalendar extends Component {
             this.state.selectedMonthId,
             authService.getLoggedInUserId()
         );
-        axios.post(`/data/users-calendars/${authService.getLoggedInUserId()}`, requestObject)
-            .then((res) => {
+        axios
+            .post(
+                `/data/users-calendars/${authService.getLoggedInUserId()}`,
+                requestObject
+            )
+            .then(res => {
                 console.log(res);
             });
-            
     }
 
     onSendForApproval() {
-        //TODO
+        var requestObject = shiftService.toShiftRequestFormat(
+            this.state.currentShifts,
+            this.state.selectedMonthId,
+            authService.getLoggedInUserId()
+        );
+
+        var approvalShifts = requestObject.shifts.map(shift => {
+            shift.status_id = 2;
+            return shift;
+        });
+
+        requestObject.shifts = approvalShifts;
+
+        axios
+            .post(
+                `/data/users-calendars/${authService.getLoggedInUserId()}`,
+                requestObject
+            )
+            .then(res => {
+                this.setState({
+                    currentShifts: shiftService.parseShiftsResp(
+                        this.state.shifts,
+                        approvalShifts
+                    ),
+                    calendarInApproval: true
+                });
+            });
     }
 
     onMonthSelected(e) {
@@ -163,9 +193,25 @@ class BookingCalendar extends Component {
                     this.state.shifts,
                     res.data.shifts
                 );
+
+                var calendarInApproval = false;
+
+                var sampleShift = Object.keys(currentShifts).pop();
+                if (sampleShift) {
+                    var sampleDay = Object.keys(
+                        currentShifts[sampleShift]
+                    ).pop();
+                    if (sampleDay) {
+                        calendarInApproval =
+                            currentShifts[sampleShift][sampleDay].status_id ===
+                            2;
+                    }
+                }
+
                 this.setState({
                     currentShifts,
-                    selectedMonthId
+                    selectedMonthId,
+                    calendarInApproval
                 });
             });
     }
@@ -192,15 +238,19 @@ class BookingCalendar extends Component {
                             </option>
                         ))}
                     </Form.Control>
-                    <Form.Text className="text-muted">
-                        Wybierz interesujący Cię miesiąc
-                    </Form.Text>
-                    {this.state.selectedMonthId !== -1 ? (
+                    <Alert show={this.state.calendarInApproval} variant={"info"}>
+                        Wybrany kalendarz został wysłany do zatwierdzenia!
+                    </Alert>
+                    {this.state.selectedMonthId !== -1 &&
+                    !this.state.calendarInApproval ? (
                         <ButtonToolbar>
-                            <Button variant="outline-primary" onClick={this.onSave}>
+                            <Button variant="primary" onClick={this.onSave}>
                                 <i className="fas fa-save"></i>Zapisz
                             </Button>
-                            <Button variant="outline-success">
+                            <Button
+                                variant="success"
+                                onClick={this.onSendForApproval}
+                            >
                                 <i
                                     className="fa fa-paper-plane"
                                     aria-hidden="true"
@@ -215,13 +265,20 @@ class BookingCalendar extends Component {
                 {this.state.selectedMonthId !== -1 ? (
                     <>
                         <ul className="legenda">
-                            <li>
-                                <i className="fas fa-stop text-primary"></i> -
-                                Termin wybrany
-                            </li>
+                            {!this.state.calendarInApproval ? (
+                                <li>
+                                    <i className="fas fa-stop text-primary"></i>{" "}
+                                    - Termin wybrany
+                                </li>
+                            ) : (
+                                <li>
+                                    <i className="fas fa-stop text-info"></i> -
+                                    Termin wysłany do zatwierdzenia
+                                </li>
+                            )}
                         </ul>
                         <Table
-                            className={"booking editable"}
+                            className={"booking " + (this.state.calendarInApproval ? "approval" : "editable") }
                             bordered
                             responsive
                         >
@@ -266,7 +323,12 @@ class BookingCalendar extends Component {
                                                         )
                                                     }
                                                 >
-                                                    <i className="default fas fa-check"></i>
+                                                    {this.state
+                                                        .calendarInApproval ? (
+                                                        <i className="default fas fa-ban"></i>
+                                                    ) : (
+                                                        <i className="default fas fa-check"></i>
+                                                    )}
                                                     <i className="hover fas fa-times"></i>
                                                 </td>
                                             ))}
