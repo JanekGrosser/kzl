@@ -8,7 +8,8 @@ const middleware = require("../middleware/middleware");
 
 router.get("/current-calendar/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm", "koo", "koz"]), dataController.getCurrentShifts);
 router.get("/users-calendars/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm", "koo", "koz"]), dataController.getUsersCalendars);
-router.post("/users-calendars/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm", "koo", "koz"]), dataController.saveUsersCalendars);
+router.post("/users-calendars/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm"]), dataController.saveUsersCalendars);
+router.post("/users-calendars/approval-phase/:user_id", middleware.checkJwt, middleware.hasRole(["adm", "koz"]), dataController.saveApprovalCalendars);
 
 
 //Dictionary tables routes TODO move to separate file
