@@ -11,11 +11,7 @@ exports.getCurrentShifts = async (req, res) => {
     try {
         let id = req.params.user_id;
         //Get current year and month
-        let currentDate = new Date();
-        let currentMonth = currentDate.getMonth() + 1;
-        let currentYear = currentDate.getFullYear();
-        //Concatenate year and month
-        let dateQueryString = currentYear + "-" + currentMonth;
+        let dateQueryString = currentYearMonth();
         //Get current months id
         let yearMonth = await knex("months").first().where({ year_month: dateQueryString });
         //Get requested shifts form db
@@ -109,7 +105,7 @@ exports.editCurrentCalendar = async (req, res) => {
 
 exports.saveUsersCalendars = async (req, res) => {
     try {
-        console.log(res.locals)
+        // console.log(res.locals)
         //Check request params 
         //TODO more request validation
         if(!req.body.shifts) {
@@ -170,7 +166,7 @@ exports.saveUsersCalendars = async (req, res) => {
 
 exports.saveApprovalCalendars = async (req, res) => {
     try {
-        console.log(res.locals)
+        // console.log(res.locals)
         //Check requet params
         if (!req.body.shifts) {
             return res.status(400).json({ error: "Check reqest params" })
@@ -273,11 +269,7 @@ exports.getMonthsDictionary = async (req, res) => {
 
 exports.getCurrentMonth = async (req, res) => {
     try {
-        let currentDate = new Date();
-        let currentMonth = currentDate.getMonth() + 1;
-        let currentYear = currentDate.getFullYear();
-        //Concatenate year and month
-        let dateQueryString = currentYear + "-" + currentMonth;
+        let dateQueryString = currentYearMonth();
         const months = await knex("months").first().where({year_month:dateQueryString});
         return res.status(200).json(months);
     } catch (error) {
@@ -288,11 +280,7 @@ exports.getCurrentMonth = async (req, res) => {
 
 exports.getFollowingMonths = async (req, res) => {
     try {
-        let currentDate = new Date();
-        let currentMonth = currentDate.getMonth() + 1;
-        let currentYear = currentDate.getFullYear();
-        //Concatenate year and month
-        let dateQueryString = currentYear + "-" + currentMonth;
+        let dateQueryString = currentYearMonth();
         const months = await knex("months").select().where("year_month", ">", dateQueryString).limit(5).orderBy("month_id");
         return res.status(200).json(months);
     } catch (error) {
