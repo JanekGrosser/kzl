@@ -18,7 +18,7 @@ router.get("/", middleware.checkJwt, middleware.hasRole(["adm", "koo", "koz"]), 
 router.get("/subdivision-users/:subdivision_id", middleware.checkJwt, middleware.hasRole(["adm", "koo", "koz"]), userController.listAllSubdivision);
 router.post("/new", middleware.checkJwt, middleware.hasRole(["adm", "koz"]), userController.newUser);
 router.get("/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm", "koo", "koz"]), userController.getUser);
-router.post("/:user_id", middleware.checkJwt, middleware.hasRole(["adm", "koz"]), userController.editUser);
+router.post("/:user_id", middleware.checkJwt, middleware.hasRole(["adm", "koz", "koo"]), userController.editUser);
 router.delete("/:user_id", middleware.checkJwt, middleware.hasRole(["adm", "koz"]), userController.deleteUser);
 
 router.get("/approval-timestamps/:month_id", middleware.checkJwt, middleware.hasRole(["adm", "koz"]), userController.getUserApprovalTimestamp);

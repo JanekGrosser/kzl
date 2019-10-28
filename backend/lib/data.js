@@ -50,8 +50,9 @@ exports.getUsersCalendars = async (req, res) => {
 
 /**
  * @async - Edit users current calendar
+ * TODO wrap all save callendar functions into one, only with diffrent middleware and routes (if possible)
  */
-exports.editCurrentCalendar = async (req, res) => {
+exports.editCurrentCalendar = async (req, res) => { 
     try {
         //Check request params 
         //TODO more request validation
@@ -61,14 +62,14 @@ exports.editCurrentCalendar = async (req, res) => {
         let userId = req.params.user_id;
         const { shifts } = req.body;
         console.log("***" + userId + ", " + shifts[0].user_id)
-        if (userId !== shifts[0].user_id) return res.status(400).json({error:"request user IDs are diffrent"});
+        if (userId !== shifts[0].user_id) return res.status(400).json({error:"request data and user IDs are diffrent"});
         
         //TODO VALIDATE
         // console.log(shifts);
 
         let monthId = shifts[0].month_id;
-        let insert = shifts.map(function (shift) {
-            return shift;
+        let insert = shifts.map(function (shift) { //TODO use if needed or remove
+            return shift; 
         });
         let trx = await knex.transaction();
         let deleted = await trx("man_shifts")
@@ -82,7 +83,7 @@ exports.editCurrentCalendar = async (req, res) => {
         await trx("man_shifts")
             .insert(insert)
             .then(() => {
-                trx.rollback();
+                trx.rollback();// change to commit afer test
                 // trx.commit();
                 return res.status(201).json({ ok: "Need something in reponse?" });
             })
@@ -120,7 +121,7 @@ exports.saveUsersCalendars = async (req, res) => {
         let monthId  = shifts[0].month_id;
         let statusId = shifts[0].status_id;
         let now = new Date();
-        let insert = shifts.map(function (shift) {
+        let insert = shifts.map(function (shift) { //TODO use if needed or remove
             // shift.user_id = userId;
             return shift;
         });
@@ -178,7 +179,7 @@ exports.saveApprovalCalendars = async (req, res) => {
         // console.log(shifts);
 
         let monthId = shifts[0].month_id
-        let insert = shifts.map(function (shift) {
+        let insert = shifts.map(function (shift) { //TODO use if needed or remove
             // shift.user_id = userId;
             return shift;
         });
@@ -207,6 +208,40 @@ exports.saveApprovalCalendars = async (req, res) => {
         return res.sendStatus(500);
     };
 };
+
+
+/**
+ * @async - Get day summary calendar for subdivision
+ */
+
+exports.getDaySummary = async (req, res) => {
+    try {
+        let subdivisionId = req.params.subdivision_id;
+        let MonthId = req.query.monthId;
+        let dayNumber = req.query.dayNumber;
+        if (!(subdivisionId && MonthId && dayNumber)) return res.status(400).json({ error: "check request params" });
+        let daySummary = await knex("man_shifts")
+        .select(
+            "man_shifts.user_id",
+            "username_csr",
+            "first_name",
+            "last_name",
+            "user_subdivisions",
+            "month_id", 
+            "day_number", 
+            "shift_id", 
+            "status_id"
+            )
+        .innerJoin("users_view", "users_view.user_id", "man_shifts.user_id" )
+        .where({month_id: MonthId , day_number: dayNumber})
+        .whereIn("man_shifts.user_id", knex.select("users_view.user_id").from("users_view"))
+        return res.status(200).json(daySummary);
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    }
+};
+
 
 
 //####DICTIONARY TABLES API####
