@@ -68,9 +68,6 @@ exports.editCurrentCalendar = async (req, res) => {
         // console.log(shifts);
 
         let monthId = shifts[0].month_id;
-        let insert = shifts.map(function (shift) { //TODO use if needed or remove
-            return shift; 
-        });
         let trx = await knex.transaction();
         let deleted = await trx("man_shifts")
             .where({ user_id: userId }).andWhere({ month_id: monthId })
@@ -81,7 +78,7 @@ exports.editCurrentCalendar = async (req, res) => {
             }));
         console.log(deleted);
         await trx("man_shifts")
-            .insert(insert)
+            .insert(shifts)
             .then(() => {
                 trx.rollback();// change to commit afer test
                 // trx.commit();
@@ -106,25 +103,16 @@ exports.editCurrentCalendar = async (req, res) => {
 
 exports.saveUsersCalendars = async (req, res) => {
     try {
-        // console.log(res.locals)
         //Check request params 
         //TODO more request validation
         if(!req.body.shifts) {
             return res.status(400).json({error:"Check reqest params"})
         };
-
         let userId = req.params.user_id;
         const {shifts} = req.body;
-        //TODO VALIDATE
-        // console.log(shifts);
-
         let monthId  = shifts[0].month_id;
         let statusId = shifts[0].status_id;
         let now = new Date();
-        let insert = shifts.map(function (shift) { //TODO use if needed or remove
-            // shift.user_id = userId;
-            return shift;
-        });
         let trx = await knex.transaction();
         let deleted = await trx("man_shifts")
         .where({ user_id: userId }).andWhere({ month_id: monthId})
@@ -143,7 +131,7 @@ exports.saveUsersCalendars = async (req, res) => {
             });
         }
         await trx("man_shifts")
-        .insert(insert)
+        .insert(shifts)
         .then(()=>{
             trx.commit();
             return res.status(201).json({ ok: "Need something in reponse?" });
@@ -167,23 +155,16 @@ exports.saveUsersCalendars = async (req, res) => {
 
 exports.saveApprovalCalendars = async (req, res) => {
     try {
-        // console.log(res.locals)
-        //Check requet params
+        //Check request params
         if (!req.body.shifts) {
             return res.status(400).json({ error: "Check reqest params" })
         };
-
         let userId = req.params.user_id;
         const { shifts } = req.body;
-        //TODO VALIDATE
-        // console.log(shifts);
-
-        let monthId = shifts[0].month_id
-        let insert = shifts.map(function (shift) { //TODO use if needed or remove
-            // shift.user_id = userId;
-            return shift;
-        });
+        let monthId = shifts[0].month_id;
+        //Start stransaction
         let trx = await knex.transaction();
+        //Delete all in range then insert new, rollback on error
         let deleted = await trx("man_shifts")
             .where({ user_id: userId }).andWhere({ month_id: monthId })
             .del()
@@ -193,7 +174,7 @@ exports.saveApprovalCalendars = async (req, res) => {
             }));
         console.log(deleted);
         await trx("man_shifts")
-            .insert(insert)
+            .insert(shifts)
             .then(() => {
                 trx.commit();
                 return res.status(201).json({ ok: "Need something in reponse?" });

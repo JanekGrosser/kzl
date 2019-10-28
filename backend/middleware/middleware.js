@@ -17,7 +17,7 @@ exports.checkJwt = async (req, res, next) => {
         const bearer = req.headers.authorization;
         //Remove "Bearer " part from authorization header
         let token = bearer.slice(7);
-        console.log(token);
+        // console.log(token);
         //Verify if token is ok
         res.locals.payload = jwt.verify(token, config.jwtSecret);
     } catch (error) {
@@ -36,7 +36,7 @@ exports.checkJwt = async (req, res, next) => {
 exports.hasRole = (roles) => {
     //Return function syntax is required for middleware to accept custom parameters
     return async (req, res, next) => {
-        console.log(res.locals)
+        // console.log(res.locals)
         //Get user id from previous middleware
         const id = res.locals.payload.id;
         //Get user data from DB

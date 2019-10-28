@@ -9,10 +9,10 @@ const middleware = require("../middleware/middleware");
 
 //Roles:
 //adm = Admin
-//tec = Technik
+//ser = Serwisant
+//ins = Instalator
 //koo = Koordynator
 //koz = Koordynator zarządczy
-//pre = Prezes
 
 router.get("/", middleware.checkJwt, middleware.hasRole(["adm", "koo", "koz"]), userController.listAll);
 router.get("/subdivision-users/:subdivision_id", middleware.checkJwt, middleware.hasRole(["adm", "koo", "koz"]), userController.listAllSubdivision);
