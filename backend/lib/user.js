@@ -52,6 +52,33 @@ exports.listAll = async (req, res) => {
         return res.sendStatus(500);
     };
 };
+/**
+ * @async - Gets all users list in subdivision
+ * T
+ */
+exports.listAllSubdivision = async (req, res) => {
+    try{
+        if(!req.params.subdivision_id) return res.status(400).json({error:"Check request param"})
+        let divisionId = req.params.subdivision_id;
+        const users = await knex("users_view")
+            .select(
+                "user_id",
+                "username_csr",
+                "first_name",
+                "last_name",
+                "phone_num",
+                "user_subdivisions",
+                "role",
+                "role_id",
+                "active")
+            .where("user_subdivisions", "like", "%" + divisionId+ "%")
+            .orderBy("user_id");
+        return res.status(200).json(users);
+    }catch(error){
+        console.log(error);
+        return res.sendStatus(500);
+    };
+};
 
 /**
  * @async - gets one user
@@ -109,7 +136,6 @@ exports.deleteUser = async (req, res) => {
  * Anyway, it works
  */
 exports.newUser = async (req, res) => {
-    // const trxProvider = knex.transactionProvider();
     const trx = await knex.transaction(); //TODO refactor, may throw unhandled promise rejection on db connection error, just movr rollbacks to .catch methods I guess and then catch block can only handle non transaction related errors
     try {
         let newUserId;
@@ -287,9 +313,9 @@ exports.editUser = async (req, res) => {
             trx.rollback();
             throw Error(err);
         });
-        console.log("***UpdatedUser: "+ JSON.stringify(updatedUser));
+        console.log("***UpdatedUser: "+ updatedUser);
         //Seperate query to assosiation table
-        if (updatedUser !== 1) return res.status(500).json({ error: "User update error, rolled back" });
+        // if (updatedUser !== 1) return res.status(500).json({ error: "User update error, rolled back" });
         let deletedSubdivisions = await trx("users_subdivisions")
         .where({ users_user_id: id })
         .delete()

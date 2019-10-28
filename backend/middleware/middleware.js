@@ -36,6 +36,7 @@ exports.checkJwt = async (req, res, next) => {
 exports.hasRole = (roles) => {
     //Return function syntax is required for middleware to accept custom parameters
     return async (req, res, next) => {
+        console.log(res.locals)
         //Get user id from previous middleware
         const id = res.locals.payload.id;
         //Get user data from DB
