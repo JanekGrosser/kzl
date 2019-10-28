@@ -219,6 +219,7 @@ exports.getDaySummary = async (req, res) => {
         let subdivisionId = req.params.subdivision_id;
         let MonthId = req.query.monthId;
         let dayNumber = req.query.dayNumber;
+        let roleId = req.query.roleId;
         if (!(subdivisionId && MonthId && dayNumber)) return res.status(400).json({ error: "check request params" });
         let daySummary = await knex("man_shifts")
         .select(
@@ -227,6 +228,7 @@ exports.getDaySummary = async (req, res) => {
             "first_name",
             "last_name",
             "user_subdivisions",
+            "role_id",
             "month_id", 
             "day_number", 
             "shift_id", 
@@ -234,7 +236,8 @@ exports.getDaySummary = async (req, res) => {
             )
         .innerJoin("users_view", "users_view.user_id", "man_shifts.user_id" )
         .where({month_id: MonthId , day_number: dayNumber})
-        .whereIn("man_shifts.user_id", knex.select("users_view.user_id").from("users_view"))
+        .andWhere({role_id: roleId})
+        .whereIn("man_shifts.user_id", knex.select("users_view.user_id").from("users_view"));
         return res.status(200).json(daySummary);
     } catch (error) {
         console.log(error);
