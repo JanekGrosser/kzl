@@ -220,7 +220,7 @@ exports.getDaySummary = async (req, res) => {
         let MonthId = req.query.monthId;
         let dayNumber = req.query.dayNumber;
         let roleId = req.query.roleId;
-        if (!(subdivisionId && MonthId && dayNumber)) return res.status(400).json({ error: "check request params" });
+        if (!(subdivisionId && MonthId && dayNumber && roleId)) return res.status(400).json({ error: "check request params" });
         let daySummary = await knex("man_shifts")
         .select(
             "man_shifts.user_id",
