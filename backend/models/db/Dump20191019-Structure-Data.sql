@@ -16,6 +16,21 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `approval_sent_at`
+--
+
+DROP TABLE IF EXISTS `approval_sent_at`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `approval_sent_at` (
+  `user_id` smallint(5) unsigned NOT NULL,
+  `month_id` int(11) NOT NULL,
+  `sent_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`,`month_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `approval_sent_at`
 --
 
@@ -23,6 +38,24 @@ LOCK TABLES `approval_sent_at` WRITE;
 /*!40000 ALTER TABLE `approval_sent_at` DISABLE KEYS */;
 /*!40000 ALTER TABLE `approval_sent_at` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `man_shifts`
+--
+
+DROP TABLE IF EXISTS `man_shifts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `man_shifts` (
+  `user_id` smallint(6) NOT NULL,
+  `month_id` int(11) NOT NULL,
+  `day_number` tinyint(2) NOT NULL,
+  `shift_id` tinyint(4) NOT NULL,
+  `status_id` tinyint(4) NOT NULL,
+  PRIMARY KEY (`user_id`,`month_id`,`day_number`,`shift_id`) USING BTREE,
+  UNIQUE KEY `desc_index` (`user_id`,`month_id`,`day_number`,`shift_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `man_shifts`
@@ -35,6 +68,21 @@ INSERT INTO `man_shifts` VALUES (1,1,1,1,1),(1,1,1,3,1),(1,1,1,6,1),(1,1,1,7,1),
 UNLOCK TABLES;
 
 --
+-- Table structure for table `months`
+--
+
+DROP TABLE IF EXISTS `months`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `months` (
+  `month_id` int(11) NOT NULL AUTO_INCREMENT,
+  `year_month` varchar(7) NOT NULL,
+  PRIMARY KEY (`month_id`),
+  UNIQUE KEY `year_month_UNIQUE` (`year_month`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `months`
 --
 
@@ -43,6 +91,21 @@ LOCK TABLES `months` WRITE;
 INSERT INTO `months` VALUES (1,'2019-09'),(2,'2019-10'),(3,'2019-11'),(4,'2019-12'),(5,'2020-01'),(6,'2020-02'),(7,'2020-03'),(8,'2020-04'),(9,'2020-05'),(10,'2020-06'),(11,'2020-07'),(12,'2020-08'),(13,'2020-09'),(14,'2020-10'),(15,'2020-11'),(16,'2020-12');
 /*!40000 ALTER TABLE `months` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `roles`
+--
+
+DROP TABLE IF EXISTS `roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `roles` (
+  `role_id` tinyint(4) NOT NULL AUTO_INCREMENT,
+  `role` char(3) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`role_id`),
+  UNIQUE KEY `role` (`role`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `roles`
@@ -55,6 +118,21 @@ INSERT INTO `roles` VALUES (1,'adm'),(3,'ins'),(4,'koo'),(5,'koz'),(2,'ser'),(6,
 UNLOCK TABLES;
 
 --
+-- Table structure for table `shifts`
+--
+
+DROP TABLE IF EXISTS `shifts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `shifts` (
+  `shift_id` tinyint(4) NOT NULL AUTO_INCREMENT,
+  `shift_start` smallint(4) unsigned zerofill NOT NULL,
+  `role_id` tinyint(4) NOT NULL,
+  PRIMARY KEY (`shift_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `shifts`
 --
 
@@ -63,6 +141,21 @@ LOCK TABLES `shifts` WRITE;
 INSERT INTO `shifts` VALUES (1,0540,3),(2,0660,3),(3,0780,3),(4,0900,3),(5,1020,3),(6,1140,3),(7,1260,3),(8,0540,2),(9,0720,2),(10,0900,2),(11,1080,2);
 /*!40000 ALTER TABLE `shifts` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `status`
+--
+
+DROP TABLE IF EXISTS `status`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `status` (
+  `status_id` tinyint(4) NOT NULL AUTO_INCREMENT,
+  `status` varchar(20) CHARACTER SET utf8 NOT NULL,
+  PRIMARY KEY (`status_id`),
+  UNIQUE KEY `status` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `status`
@@ -75,6 +168,20 @@ INSERT INTO `status` VALUES (2,'approval'),(3,'approval-added'),(4,'approval-rem
 UNLOCK TABLES;
 
 --
+-- Table structure for table `subdivisions`
+--
+
+DROP TABLE IF EXISTS `subdivisions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `subdivisions` (
+  `subdivision_id` tinyint(4) NOT NULL AUTO_INCREMENT,
+  `subdivision_name` varchar(20) CHARACTER SET utf8 NOT NULL,
+  PRIMARY KEY (`subdivision_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `subdivisions`
 --
 
@@ -83,6 +190,30 @@ LOCK TABLES `subdivisions` WRITE;
 INSERT INTO `subdivisions` VALUES (1,'Warszawa 1'),(2,'Warszawa 2'),(3,'Warszawa 3'),(4,'Gdańsk 1'),(5,'Gdańsk 2'),(6,'Gdańsk 3'),(7,'Sosnowiec 1'),(8,'Radom 1'),(9,'Suwałki 1');
 /*!40000 ALTER TABLE `subdivisions` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `users` (
+  `user_id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `username_csr` char(3) COLLATE utf8_unicode_ci NOT NULL,
+  `first_name` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
+  `last_name` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
+  `phone_num` varchar(9) COLLATE utf8_unicode_ci NOT NULL,
+  `active` tinyint(1) NOT NULL,
+  `hash` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `role_id` tinyint(4) NOT NULL,
+  `last_pass_reset` timestamp(2) NOT NULL DEFAULT '2018-12-31 23:00:01.00',
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `username_csr` (`username_csr`),
+  KEY `fk_users_1_idx` (`role_id`),
+  CONSTRAINT `fk_users_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=201 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `users`
@@ -95,6 +226,46 @@ INSERT INTO `users` VALUES (1,'ado','Lindsey','Hudson','605310490',1,'$2b$10$s.2
 UNLOCK TABLES;
 
 --
+-- Temporary table structure for view `users_auth_view`
+--
+
+DROP TABLE IF EXISTS `users_auth_view`;
+/*!50001 DROP VIEW IF EXISTS `users_auth_view`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `users_auth_view` AS SELECT 
+ 1 AS `user_id`,
+ 1 AS `username_csr`,
+ 1 AS `first_name`,
+ 1 AS `last_name`,
+ 1 AS `phone_num`,
+ 1 AS `active`,
+ 1 AS `role_id`,
+ 1 AS `role`,
+ 1 AS `last_pass_reset`,
+ 1 AS `hash`,
+ 1 AS `user_subdivisions`*/;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `users_subdivisions`
+--
+
+DROP TABLE IF EXISTS `users_subdivisions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `users_subdivisions` (
+  `users_user_id` smallint(5) unsigned NOT NULL,
+  `subdivisions_subdivision_id` tinyint(4) NOT NULL,
+  PRIMARY KEY (`users_user_id`,`subdivisions_subdivision_id`),
+  KEY `fk_users_has_subdivisions_subdivisions1_idx` (`subdivisions_subdivision_id`),
+  KEY `fk_users_has_subdivisions_users1_idx` (`users_user_id`),
+  CONSTRAINT `fk_users_has_subdivisions_subdivisions1` FOREIGN KEY (`subdivisions_subdivision_id`) REFERENCES `subdivisions` (`subdivision_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_users_has_subdivisions_users1` FOREIGN KEY (`users_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `users_subdivisions`
 --
 
@@ -103,6 +274,63 @@ LOCK TABLES `users_subdivisions` WRITE;
 INSERT INTO `users_subdivisions` VALUES (3,1),(11,1),(17,1),(20,1),(23,1),(25,1),(33,1),(34,1),(36,1),(40,1),(43,1),(47,1),(48,1),(49,1),(54,1),(65,1),(66,1),(70,1),(80,1),(84,1),(87,1),(94,1),(96,1),(97,1),(106,1),(112,1),(117,1),(118,1),(120,1),(130,1),(132,1),(138,1),(139,1),(179,1),(182,1),(183,1),(6,2),(10,2),(13,2),(18,2),(20,2),(27,2),(29,2),(32,2),(55,2),(56,2),(57,2),(63,2),(64,2),(67,2),(68,2),(79,2),(98,2),(102,2),(109,2),(113,2),(115,2),(116,2),(121,2),(123,2),(127,2),(134,2),(137,2),(179,2),(191,2),(192,2),(194,2),(195,2),(1,3),(4,3),(7,3),(10,3),(14,3),(15,3),(19,3),(20,3),(30,3),(35,3),(37,3),(38,3),(44,3),(45,3),(51,3),(58,3),(61,3),(62,3),(72,3),(74,3),(86,3),(89,3),(92,3),(95,3),(103,3),(108,3),(110,3),(126,3),(179,3),(185,3),(187,3),(189,3),(191,3),(196,3),(2,4),(16,4),(19,4),(22,4),(28,4),(39,4),(46,4),(52,4),(59,4),(66,4),(69,4),(75,4),(78,4),(81,4),(82,4),(83,4),(90,4),(91,4),(101,4),(105,4),(124,4),(125,4),(129,4),(133,4),(135,4),(136,4),(140,4),(180,4),(194,4),(195,4),(200,4),(5,5),(8,5),(9,5),(12,5),(19,5),(21,5),(24,5),(26,5),(31,5),(41,5),(42,5),(50,5),(53,5),(60,5),(71,5),(73,5),(76,5),(77,5),(85,5),(88,5),(93,5),(99,5),(100,5),(104,5),(107,5),(111,5),(114,5),(119,5),(122,5),(128,5),(131,5),(195,7),(184,8);
 /*!40000 ALTER TABLE `users_subdivisions` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Temporary table structure for view `users_view`
+--
+
+DROP TABLE IF EXISTS `users_view`;
+/*!50001 DROP VIEW IF EXISTS `users_view`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `users_view` AS SELECT 
+ 1 AS `user_id`,
+ 1 AS `username_csr`,
+ 1 AS `first_name`,
+ 1 AS `last_name`,
+ 1 AS `phone_num`,
+ 1 AS `active`,
+ 1 AS `role_id`,
+ 1 AS `role`,
+ 1 AS `last_pass_reset`,
+ 1 AS `user_subdivisions`*/;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Final view structure for view `users_auth_view`
+--
+
+/*!50001 DROP VIEW IF EXISTS `users_auth_view`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `users_auth_view` AS select `u`.`user_id` AS `user_id`,`u`.`username_csr` AS `username_csr`,`u`.`first_name` AS `first_name`,`u`.`last_name` AS `last_name`,`u`.`phone_num` AS `phone_num`,`u`.`active` AS `active`,`u`.`role_id` AS `role_id`,`r`.`role` AS `role`,`u`.`last_pass_reset` AS `last_pass_reset`,`u`.`hash` AS `hash`,group_concat(`s`.`subdivision_id` separator ', ') AS `user_subdivisions` from (((`users` `u` join `users_subdivisions` `us` on((`us`.`users_user_id` = `u`.`user_id`))) join `subdivisions` `s` on((`s`.`subdivision_id` = `us`.`subdivisions_subdivision_id`))) join `roles` `r` on((`u`.`role_id` = `r`.`role_id`))) group by `u`.`user_id` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+
+--
+-- Final view structure for view `users_view`
+--
+
+/*!50001 DROP VIEW IF EXISTS `users_view`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `users_view` AS select `u`.`user_id` AS `user_id`,`u`.`username_csr` AS `username_csr`,`u`.`first_name` AS `first_name`,`u`.`last_name` AS `last_name`,`u`.`phone_num` AS `phone_num`,`u`.`active` AS `active`,`u`.`role_id` AS `role_id`,`r`.`role` AS `role`,`u`.`last_pass_reset` AS `last_pass_reset`,group_concat(`s`.`subdivision_id` separator ', ') AS `user_subdivisions` from (((`users` `u` join `users_subdivisions` `us` on((`us`.`users_user_id` = `u`.`user_id`))) join `subdivisions` `s` on((`s`.`subdivision_id` = `us`.`subdivisions_subdivision_id`))) join `roles` `r` on((`u`.`role_id` = `r`.`role_id`))) group by `u`.`user_id` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -113,4 +341,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-10-29 20:30:32
+-- Dump completed on 2019-10-29 20:31:00

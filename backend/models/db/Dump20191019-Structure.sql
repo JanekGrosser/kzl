@@ -43,9 +43,8 @@ CREATE TABLE `man_shifts` (
   `day_number` tinyint(2) NOT NULL,
   `shift_id` tinyint(4) NOT NULL,
   `status_id` tinyint(4) NOT NULL,
-  `user_last_change` timestamp(2) NOT NULL DEFAULT CURRENT_TIMESTAMP(2) ON UPDATE CURRENT_TIMESTAMP(2),
-  KEY `Asc_unique_key` (`user_id`,`month_id`,`day_number`,`shift_id`) USING BTREE,
-  KEY `desc_index` (`user_id`,`month_id`,`day_number`,`shift_id`)
+  PRIMARY KEY (`user_id`,`month_id`,`day_number`,`shift_id`) USING BTREE,
+  UNIQUE KEY `desc_index` (`user_id`,`month_id`,`day_number`,`shift_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -253,4 +252,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-10-28 23:53:09
+-- Dump completed on 2019-10-29 20:30:21

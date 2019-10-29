@@ -13,6 +13,7 @@ router.get("/day-calendar/:subdivision_id", middleware.checkJwt, middleware.hasR
 
 router.post("/users-calendars/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm"]), dataController.saveUsersCalendars);
 router.post("/users-calendars/approval-phase/:user_id", middleware.checkJwt, middleware.hasRole(["adm", "koz"]), dataController.saveApprovalCalendars);
+router.post("/day-calendar", middleware.checkJwt, middleware.hasRole(["adm", "koz"]), dataController.saveSummaryCalendars);
 
 
 //Dictionary tables routes TODO move to separate file
