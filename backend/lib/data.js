@@ -1,5 +1,5 @@
 "use-strict";
-
+//TODO unify integer/string in values when diffrent types need to be compared 
 //TODO check to ensure not blocking the Event Loop
 const knex = require("../config/knex");
 
@@ -234,25 +234,34 @@ exports.getDaySummary = async (req, res) => {
 
 /**
  * @async - Function save changes made in summary calendar view
+ * @param req 
+ * @param res
  * @param req.body.shifts.user_id
  * @param req.body.shifts.month_id
  * @param req.body.shifts.day_number
  * @param req.body.shifts.shift_id
  * @param req.body.shifts.status_id
+ * @param req.query.monthId
+ * @param req.query.dayNumber
  * @returns api server response
  */
 
 exports.saveSummaryCalendars = async (req, res) => {
     try {
         //Check request params
-        if (!req.body.shifts) {
+        if (!(req.body.shifts && req.query.monthId && req.query.dayNumber)) {
             return res.status(400).json({ error: "Check reqest params" })
         };
+
         const { shifts } = req.body;
-        let monthId = shifts[0].month_id;
-        let dayNumber = shifts[0].day_number;
+        let monthId = req.query.monthId;
+        let dayNumber = req.query.dayNumber;
         let userIds = [];
-        shifts.forEach(function(shift){
+        shifts.forEach(function(shift){ 
+            if (!(shift.month_id == monthId && shift.day_number == dayNumber)) {
+                console.log("error!");
+                throw Error("Bad request data");
+            };
             userIds.push(shift.user_id);
         });
         //Start stransaction
