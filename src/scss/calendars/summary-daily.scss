@@ -1,0 +1,17 @@
+main {
+    &.main-view {
+        &.summary-daily {
+            
+            .selectors {
+                display: flex;
+                flex-flow: wrap;
+                align-items: flex-end;
+            }
+            .btn-toolbar {
+                button {
+                    margin: 0 1rem 0 0;
+                }
+            }
+        }
+    }
+}

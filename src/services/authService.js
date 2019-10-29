@@ -1,6 +1,7 @@
 
 import axios from "axios";
 
+
 function b64DecodeUnicode(str) {
     // Going backwards: from bytestream, to percent-encoding, to original string.
     return decodeURIComponent(atob(str).split('').map(function(c) {
@@ -24,7 +25,7 @@ class AuthService {
     }
 
     isPriviligedRole() {
-        return this.data.role && !this.isRegularRole() && !this.isSuperUserRole();
+        return (this.data.role && !this.isRegularRole()) || this.isSuperUserRole();
     }
 
     isSuperUserRole() {
@@ -41,6 +42,10 @@ class AuthService {
 
     getUsername() {
         return this.data.first_name + " " + this.data.last_name;
+    }
+
+    getUserCSR() {
+        return this.data.username;
     }
 
     getUserRoleId() {

@@ -2,11 +2,14 @@ import React, { Component } from "react";
 import axios from "axios";
 import authService from "../../services/authService";
 import shiftService from "../../services/shiftService";
+import statusService from "../../services/statusService";
 import { Table } from "react-bootstrap";
 import util from "../../util";
+import lang from "../../common/lang";
+
+var l = lang();
 
 class CurrentCalendar extends Component {
-    
     constructor(props) {
         super(props);
         this.state = {
@@ -77,32 +80,17 @@ class CurrentCalendar extends Component {
         return days;
     }
 
-    changeStatus() {}
-
-    getStatusIdFromCurrentShifts(shift_id, day_number) {
-        return this.state.currentShifts != {} &&
-            this.state.currentShifts[shift_id] && this.state.currentShifts[shift_id][day_number]
-            ? this.state.currentShifts[shift_id][day_number].status_id
-            : "";
-    }
-
-    getClassForStatusId(status_id) {
-        switch (status_id) {
-            case 1:
-                return "done";
-            case 2:
-                return "changed";
-            default:
-                return "";
-        }
-    }
     render() {
         console.log(this.state);
         return (
             <>
-                <h2>Kalendarz bieżący</h2>
-                <h4>Bartosz Grabski (GRA)</h4>
-                <h4>Miesiąc - {this.state.currentMonth}</h4>
+                <h2>{l.currentCalendar}</h2>
+                <h3>
+                    {authService.getUsername()} - ({authService.getUserCSR()})
+                </h3>
+                <h3>
+                    {l.month} - {this.state.currentMonth}
+                </h3>
                 <ul className="legenda">
                     <li>
                         <i className="fas fa-stop text-success"></i> - Termin
@@ -133,8 +121,12 @@ class CurrentCalendar extends Component {
                                     </td>
                                     {this.getDays().map(day => (
                                         <td
-                                            className={this.getClassForStatusId(
-                                                this.getStatusIdFromCurrentShifts(shift.shift_id,day.day_number)
+                                            className={statusService.getClassForStatusId(
+                                                statusService.getStatusIdFromCurrentShifts(
+                                                    shift.shift_id,
+                                                    day.day_number,
+                                                    this.state.currentShifts
+                                                )
                                             )}
                                             onClick={() => {}}
                                         ></td>

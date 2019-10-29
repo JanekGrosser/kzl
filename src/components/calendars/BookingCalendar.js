@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import axios from "axios";
 import authService from "../../services/authService";
 import shiftService from "../../services/shiftService";
+import statusService from "../../services/statusService";
 import { Table, Alert, Form, Button, ButtonToolbar } from "react-bootstrap";
 import util from "../../util";
 
@@ -89,27 +90,6 @@ class BookingCalendar extends Component {
             return days;
         }
         return [];
-    }
-
-    changeStatus() {}
-
-    getStatusIdFromCurrentShifts(shift_id, day_number) {
-        return this.state.currentShifts &&
-            this.state.currentShifts[shift_id] &&
-            this.state.currentShifts[shift_id][day_number]
-            ? this.state.currentShifts[shift_id][day_number].status_id
-            : "";
-    }
-
-    getClassForStatusId(status_id) {
-        switch (status_id) {
-            case 1:
-                return "editable";
-            case 2:
-                return "approval";
-            default:
-                return "";
-        }
     }
 
     onDayClicked(shiftId, dayNumber) {
@@ -320,10 +300,11 @@ class BookingCalendar extends Component {
                                                         "-" +
                                                         day.day_number
                                                     }
-                                                    className={this.getClassForStatusId(
-                                                        this.getStatusIdFromCurrentShifts(
+                                                    className={statusService.getClassForStatusId(
+                                                        statusService.getStatusIdFromCurrentShifts(
                                                             shift.shift_id,
-                                                            day.day_number
+                                                            day.day_number,
+                                                            this.state.currentShifts
                                                         )
                                                     )}
                                                     onClick={() =>

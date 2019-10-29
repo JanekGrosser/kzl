@@ -1,0 +1,48 @@
+.legenda {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: flex-end;
+    flex-flow: row wrap;
+    
+
+    li {
+        list-style-type: none;
+        margin: 0 0 1rem 1rem;
+        padding: .5rem;
+        border-radius: 5px;
+
+        &:first-child {
+            margin-left: 0;
+        }
+
+        i {
+            margin-right: .5rem;
+        }
+
+        &.approval {
+            color: $info-text;
+            background-color: $info-background;
+        }
+
+        &.approved {
+            color: $success-text;
+            background-color: $success-background;
+        }
+
+        &.approval-removed,
+        &.approved-removed {
+            color: $danger-text;
+            background-color: $danger-background;
+        }
+
+        &.approval-added,
+        &.approved-added {
+            color: $warning-text;
+            background-color: $warning-background;
+        }
+
+        
+    }
+
+}

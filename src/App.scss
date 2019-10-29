@@ -1,3 +1,5 @@
+@import "./scss/variables";
+
 body,
 html {
     margin: 0;
@@ -15,6 +17,11 @@ html {
 #root {
     height: 100%;
 
+    .react-datepicker-wrapper {
+        display: block;
+        max-width: 200px;
+    }
+
     footer {
         position: fixed;
         bottom: 0;
@@ -28,40 +35,41 @@ html {
         }
     }
 
-    .legenda {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-flow: row wrap;
-        li {
-            list-style-type: none;
-            margin: 20px;
-        }
-    }
-
     .app {
         position: relative;
         height: auto;
         min-height: 100%;
 
+        $calendar-margin: 1rem;
+
         main {
             height: auto;
             min-height: 100%;
-            padding-top: 60px;
             box-sizing: border-box;
-            padding-bottom: 60px;
             overflow: hidden;
-
-            $calendar-margin: 1rem;
-
-            h2,
-            h3,
-            h4 {
-                margin: $calendar-margin 0 0 $calendar-margin;
+            padding: 60px $calendar-margin 4 * $calendar-margin $calendar-margin;
+            
+            h2 {
+                margin-top: 1rem;
+            }
+            h1,h2,h3,h4 {
+                margin-bottom: 1rem;
             }
 
+            .selectors {
+                .form-group {
+                    margin-right: 1rem;
+                }
+            }
+            .btn {
+                .fas, .fa {
+                    margin-right: .5rem;
+                }
+            }
+
+
             .alert {
-                margin: $calendar-margin 0;
+                margin: $calendar-margin $calendar-margin 0 0;
             }
 
             .input-group {
@@ -118,21 +126,6 @@ html {
                         text-align: center;
                     }
                 }
-
-                $success-text: #155724;
-                $success-background: #d4edda;
-
-                $primary-text: #004085;
-                $primary-background: #cce5ff;
-
-                $warning-text: #856404;
-                $warning-background: #fff3cd;
-
-                $danger-text: #721c24;
-                $danger-background: #f8d7da;
-
-                $info-text: #0c5460;
-                $info-background: #d1ecf1;
 
                 td {
                     &.approval {
@@ -216,7 +209,7 @@ html {
             padding-left: 6vw;
             padding-right: 6vw;
             width: 110vw;
-            min-height: 60px;
+            min-height: $topbar-height;
             z-index: 1000;
 
             .nav-link {
@@ -284,13 +277,9 @@ html {
             }
         }
     }
-}
 
-.form-group {
-    i {
-        margin-right: 0.5rem;
-    }
-    .list-group-item {
-        padding: 0.5rem;
-    }
+    @import "./scss/components/legend";
+    @import "./scss/components/common";
+    @import "./scss/calendars/summary-daily";
+    
 }

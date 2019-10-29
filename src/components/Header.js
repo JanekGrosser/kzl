@@ -68,6 +68,7 @@ class Header extends Component {
               { authService.isRegularRole() ? <Link className="nav-link" to="/">Kalendarz biezacy</Link> : "" }
               { authService.isRegularRole() ? <Link className="nav-link" to="/booking">Kalendarz rezerwacji grafiku</Link> : "" }
               { authService.isSuperUserRole() ? <Nav.Link onClick={this.openAddUserModal}>{lang.addUser}</Nav.Link> : "" }
+              { authService.isPriviligedRole() ? <Link className="nav-link" to="/summary-daily">{lang.summaryDaily}</Link> : "" }
               { authService.isPriviligedRole() ? <Link className="nav-link" to="/users">{lang.users}</Link> : "" }
               <Nav.Link className="show-mobile" onClick={this.openPasswordModal}>{lang.changePassword}</Nav.Link>
               <Nav.Link className="show-mobile text-danger" onClick={this.onLogout}>{lang.logout}</Nav.Link>

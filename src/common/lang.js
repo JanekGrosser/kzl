@@ -1,4 +1,3 @@
-
 var translations = {
     pl: {
         login: "Zaloguj",
@@ -43,11 +42,23 @@ var translations = {
         homeView: "Widok główny",
         users: "Użytkownicy",
         subdivisions: "Podwykowawcy",
+        subdivision: "Podwykonawca",
         edit: "Edytuj",
         firstName: "Imię",
         lastName: "Nazwisko",
         telephone: "Telefon",
-        search: "Szukaj"
+        search: "Szukaj",
+        month: "Miesiąc",
+        currentCalendar: "Kalendarz bieżący",
+        summaryDaily: "Kalendarz dzienny zbiorczy",
+        chooseTechnician: "Wybierz rodzaj technika",
+        noResults: "Brak wyników",
+        noUserResults: "Brak użytkowników",
+        editable: "Zapisany (kopia robocza)",
+        approval: "Do zatwierdzenia",
+        "approval-added": "Dodano termin",
+        "approval-removed": "Usunięto termin",
+        "approved": "Zatwierdzono",
     }
 }
 

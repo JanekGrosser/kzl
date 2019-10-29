@@ -10,5 +10,17 @@ export default {
         h = h < 10 ? "0" + h : h;
         m = m < 10 ? "0" + m : m;
         return h + ":" + m;
-    }
+    },
+    getDateFromYearMonth(yearMonthString) {
+        var yearMonthStringSplit = yearMonthString.split("-");
+        var year = parseInt(yearMonthStringSplit[0]);
+        var month = parseInt(yearMonthStringSplit[1]);
+        return new Date(year,month - 1,1);
+    },
+    getMonthObjectFromDate(date, months) {
+        return months.find(month => {
+            return month.year_month === (date.getFullYear() + "-" + ("0"+(date.getMonth()+1)).slice(-2));
+        })
+    },
+
 };
