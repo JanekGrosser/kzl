@@ -7,7 +7,11 @@ const general = require("./general");
 
 /**
  * @async - Get selected user shifts calendar for the current month 
- * @returns - Api server response and data
+ * @returns - Api server response and requested shifts data ordered by month and shift id
+ * @param {object} req
+ * @param {object} req.params
+ * @param {number} req.params.user_id
+ * @param {object} res
  */
 exports.getCurrentShifts = async (req, res) => {
     try {
@@ -34,6 +38,12 @@ exports.getCurrentShifts = async (req, res) => {
 /**
  * @async - Get selected user shifts callendar for selected month
  * @returns - Api server response and data
+ * @param {object} req
+ * @param {object} req.params
+ * @param {object} req.params.user_id
+ * @param {object} req.query
+ * @param {object} req.query.month_id
+ * @param {object} res
  */
 exports.getUsersCalendars = async (req, res) => {
     try {
@@ -54,12 +64,18 @@ exports.getUsersCalendars = async (req, res) => {
 /**
  * @async - Edit users current calendar
  * @returns - Api server response
- * TODO wrap all save callendar functions into one, only with diffrent middleware and routes (if possible)
+ * @todo wrap all save callendar functions into one, only with diffrent middleware and routes (if possible)
+ * @todo more validation
+ * @param {object} req
+ * @param {object} req.body
+ * @param {json} req.body.shifts
+ * @param {object} req.params
+ * @param {number} req.params.user_id
+ * @param {object} res
  */
 exports.editCurrentCalendar = async (req, res) => { 
     try {
         //Check request params 
-        //TODO more request validation
         if (!req.body.shifts) {
             return res.status(400).json({ error: "Check reqest params" })
         };
@@ -67,13 +83,9 @@ exports.editCurrentCalendar = async (req, res) => {
         const { shifts } = req.body;
         console.log("***" + userId + ", " + shifts[0].user_id)
         if (userId !== shifts[0].user_id) return res.status(400).json({error:"request data and user IDs are diffrent"});
-        
-        //TODO VALIDATE
-        // console.log(shifts);
-
         let monthId = shifts[0].month_id;
         let trx = await knex.transaction();
-        let deleted = await trx("man_shifts")
+        await trx("man_shifts")
             .where({ user_id: userId }).andWhere({ month_id: monthId })
             .del()
             .catch((err) => {
@@ -84,8 +96,8 @@ exports.editCurrentCalendar = async (req, res) => {
         await trx("man_shifts")
             .insert(shifts)
             .then(() => {
-                trx.rollback();// change to commit afer test
-                // trx.commit();
+                // trx.rollback();// change to commit afer test
+                trx.commit();
                 return res.status(201).json({ ok: "Need something in reponse?" });
             })
             .catch((err) => {
@@ -104,12 +116,17 @@ exports.editCurrentCalendar = async (req, res) => {
 /**
  * @async - Save calendar in reservation phase
  * @returns - Api server response
+ * @todo - Better validation
+ * @param {object} req
+ * @param {object} req.body
+ * @param {JSON} req.body.shifts
+ * @param {number} req.params.user_id
+ * @param {object} res
  */
 
 exports.saveUsersCalendars = async (req, res) => {
     try {
-        //Check request params 
-        //TODO more request validation
+        //Check request params
         if(!req.body.shifts) {
             return res.status(400).json({error:"Check reqest params"})
         };
@@ -119,14 +136,13 @@ exports.saveUsersCalendars = async (req, res) => {
         let statusId = shifts[0].status_id;
         let now = new Date();
         let trx = await knex.transaction();
-        let deleted = await trx("man_shifts")
+        await trx("man_shifts")
         .where({ user_id: userId }).andWhere({ month_id: monthId})
         .del()
         .catch((err) =>{
             trx.rollback();
             throw Error(err);
         });
-        // console.log(deleted);
         if (statusId === 2) {
             await trx("approval_sent_at")
             .insert({user_id: userId, month_id: monthId, sent_at: now})
@@ -157,6 +173,13 @@ exports.saveUsersCalendars = async (req, res) => {
 /**
  * @async - Save calendar by KZ in approval phase
  * @returns - Api server response
+ * @todo better validation
+ * @param {object} req
+ * @param {object} req.body
+ * @param {JSON} req.body.shifts
+ * @param {Objcet} req.params
+ * @param {number} req.params.user_id
+ * @param {object} res
  */
 
 exports.saveApprovalCalendars = async (req, res) => {
@@ -171,14 +194,13 @@ exports.saveApprovalCalendars = async (req, res) => {
         //Start stransaction
         let trx = await knex.transaction();
         //Delete all in range then insert new, rollback on error
-        let deleted = await trx("man_shifts")
+        await trx("man_shifts")
             .where({ user_id: userId }).andWhere({ month_id: monthId })
             .del()
             .catch((err) => {
                 trx.rollback();
                 throw Error(err);
             });
-        // console.log(deleted);
         await trx("man_shifts")
             .insert(shifts)
             .then(() => {
@@ -198,8 +220,15 @@ exports.saveApprovalCalendars = async (req, res) => {
 
 
 /**
- * @async - Get day summary calendar for subdivision
+ * @async - Get day summary calendar for specific subdivision
  * @returns - Api server response and data
+ * @param {object} req
+ * @param {object} req.params
+ * @param {number} req.params.subdivision_id
+ * @param {object} req.query
+ * @param {number} req.query.monthId
+ * @param {number} req.query.dayNumber
+ * @param {object} res
  */
 
 exports.getDaySummary = async (req, res) => {
@@ -235,15 +264,16 @@ exports.getDaySummary = async (req, res) => {
 
 /**
  * @async - Function save changes made in summary calendar view
- * @param req 
- * @param res
- * @param req.body.shifts.user_id
- * @param req.body.shifts.month_id
- * @param req.body.shifts.day_number
- * @param req.body.shifts.shift_id
- * @param req.body.shifts.status_id
- * @param req.query.monthId
- * @param req.query.dayNumber
+ * @todo better validation
+ * @param {object} req
+ * @param {nubmer} req.body.shifts.user_id
+ * @param {number} req.body.shifts.month_id
+ * @param {number} req.body.shifts.day_number
+ * @param {number} req.body.shifts.shift_id
+ * @param {number} req.body.shifts.status_id
+ * @param {number} req.query.monthId
+ * @param {number} req.query.dayNumber
+ * @param {object} res
  * @returns api server response
  */
 
@@ -268,14 +298,13 @@ exports.saveSummaryCalendars = async (req, res) => {
         //Start stransaction
         let trx = await knex.transaction();
         //Delete all in range then insert new, rollback on error
-        let deleted = await trx("man_shifts")
+        await trx("man_shifts")
             .where({ day_number: dayNumber }).andWhere({ month_id: monthId }).whereIn("user_id", userIds)
             .del()
             .catch((err) => {
                 trx.rollback();
                 throw Error(err);
             });
-        console.log(`***Deleted rows: ${deleted}`);
         await trx("man_shifts")
             .insert(shifts)
             .then(() => {
