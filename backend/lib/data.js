@@ -2,6 +2,7 @@
 //TODO unify integer/string in values when diffrent types need to be compared 
 //TODO check to ensure not blocking the Event Loop
 const knex = require("../config/knex");
+const general = require("./general");
 
 
 /**
@@ -12,7 +13,7 @@ exports.getCurrentShifts = async (req, res) => {
     try {
         let id = req.params.user_id;
         //Get current year and month
-        let dateQueryString = currentYearMonth();
+        let dateQueryString = general.currentYearMonth();
         //Get current months id
         let yearMonth = await knex("months").first().where({ year_month: dateQueryString });
         //Get requested shifts form db
@@ -294,95 +295,3 @@ exports.saveSummaryCalendars = async (req, res) => {
 };
 
 
-//####DICTIONARY TABLES API####
-//TODO move to separate file
-
-exports.getSubdivisionsDictionary = async (req, res) => {
-    try{
-        const subdivisions = await knex("subdivisions").select();
-        return res.status(200).json(subdivisions);
-
-    }catch(error){
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getRolesDictionary = async (req, res) => {
-    try{
-        const roles = await knex("roles").select();
-        return res.status(200).json(roles);
-
-    }catch(error){
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getShiftsDictionary = async (req, res) => {
-    try{
-        const shifts = await knex("shifts").select();
-        return res.status(200).json(shifts);
-
-    }catch(error){
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getStatusDictionary = async (req, res) => {
-    try {
-        const status = await knex("status").select();
-        return res.status(200).json(status);
-
-    } catch (error) {
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getMonthsDictionary = async (req, res) => {
-    try {
-        const months = await knex("months").select();
-        return res.status(200).json(months);
-
-    } catch (error) {
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getCurrentMonth = async (req, res) => {
-    try {
-        let dateQueryString = currentYearMonth();
-        const months = await knex("months").first().where({year_month:dateQueryString});
-        return res.status(200).json(months);
-    } catch (error) {
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getFollowingMonths = async (req, res) => {
-    try {
-        let dateQueryString = currentYearMonth();
-        const months = await knex("months").select().where("year_month", ">", dateQueryString).limit(5).orderBy("month_id");
-        return res.status(200).json(months);
-    } catch (error) {
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-/**
- * @function
- * @returns current yearMonth string (YYYY-M(M))
- * @todo add folowing zero in days
- */
-function currentYearMonth () {
-    let currentDate = new Date();
-    let currentMonth = currentDate.getMonth() + 1;
-    let currentYear = currentDate.getFullYear();
-    //Concatenate year and month
-    let dateQueryString = currentYear + "-" + currentMonth;
-    return dateQueryString;
-}
