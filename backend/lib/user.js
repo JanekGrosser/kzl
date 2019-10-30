@@ -119,9 +119,9 @@ exports.deleteUser = async (req, res) => {
             .where({ user_id: id })
             .del();
         if (user > 0) {
-            return res.status(200).send(`User id: ${id} removed`);
+            return res.status(200).json({message:`User id: ${id} removed`});
         } else {
-            return res.status(404).send(`User id ${id} not found`);
+            return res.status(404).json({message: `User id ${id} not found`});
         };
     }catch(error){
         console.log(error);

@@ -79,7 +79,7 @@ exports.editCurrentCalendar = async (req, res) => {
                 trx.rollback();
                 throw Error(err);
             });
-        console.log(deleted);
+        // console.log(deleted);
         await trx("man_shifts")
             .insert(shifts)
             .then(() => {
@@ -125,7 +125,7 @@ exports.saveUsersCalendars = async (req, res) => {
             trx.rollback();
             throw Error(err);
         });
-        console.log(deleted);
+        // console.log(deleted);
         if (statusId === 2) {
             await trx("approval_sent_at")
             .insert({user_id: userId, month_id: monthId, sent_at: now})
@@ -177,7 +177,7 @@ exports.saveApprovalCalendars = async (req, res) => {
                 trx.rollback();
                 throw Error(err);
             });
-        console.log(deleted);
+        // console.log(deleted);
         await trx("man_shifts")
             .insert(shifts)
             .then(() => {
@@ -376,6 +376,7 @@ exports.getFollowingMonths = async (req, res) => {
 /**
  * @function
  * @returns current yearMonth string (YYYY-M(M))
+ * @todo add folowing zero in days
  */
 function currentYearMonth () {
     let currentDate = new Date();

@@ -1,5 +1,4 @@
 "use-strict";
-//TODO check to ensure not blocking the Event Loop
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -7,18 +6,18 @@ const generator = require("generate-password");
 const Nexmo = require("nexmo");
 const validate = require("validator");
 
-// const respond = require("./responses").respond;
 const config = require("../config/config");
 const knex = require("../config/knex");
+const saltRounds = 10;
+
 const nexmo = new Nexmo({
     apiKey: config.nexmo.apiKey,
     apiSecret: config.nexmo.apiSecret
 }, {debug: true})
-const saltRounds = 10;
 
 /**
- * @async Function checks if provided password mathces hashed password in DB
- * 
+ * @async Function checks if provided password matches hashed password in DB
+ * @rerurns server resonse, and on succes a signed JWT token
  */
 exports.login = async (req, res) => {
     try {
