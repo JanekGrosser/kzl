@@ -11,6 +11,11 @@ const saltRounds = 10;
 
 /**
  * @async - Get sorted list of users sent to approval timestamps
+ * @returns - Api server response and requested data
+ * @param {object} req
+ * @param {object} req.params
+ * @param {number} req.params.month_id
+ * @param {object} res
  */
 exports.getUserApprovalTimestamp = async (req,res) => {
     try {
@@ -30,7 +35,9 @@ exports.getUserApprovalTimestamp = async (req,res) => {
 
 /**
  * @async - Gets all users list
- * TODO add subdivisions parameter and query
+ * @raturns - Api server response and requested data
+ * @param {object} req
+ * @param {object} res
  */
 exports.listAll = async (req, res) => {
     try{
@@ -54,7 +61,8 @@ exports.listAll = async (req, res) => {
 };
 /**
  * @async - Gets all users list in subdivision
- * T
+ * @param {object} req
+ * @param {object} res
  */
 exports.listAllSubdivision = async (req, res) => {
     try{
@@ -82,6 +90,8 @@ exports.listAllSubdivision = async (req, res) => {
 
 /**
  * @async - gets one user
+ * @param {object} req
+ * @param {object} res
  */
 exports.getUser = async (req, res) => {
     try {
@@ -111,6 +121,8 @@ exports.getUser = async (req, res) => {
 
 /**
  * @async - remove user form DB
+ * @param {object} req
+ * @param {object} res
  */
 exports.deleteUser = async (req, res) => {
     try{
@@ -132,8 +144,10 @@ exports.deleteUser = async (req, res) => {
 /**
  * @async - creates new user in DB
  * Those next two functions are..
- * TODO refactor this
+ * @todo refactor this
  * Anyway, it works
+ * @param {object} req
+ * @param {object} res
  */
 exports.newUser = async (req, res) => {
     const trx = await knex.transaction(); //TODO refactor, may throw unhandled promise rejection on db connection error, just movr rollbacks to .catch methods I guess and then catch block can only handle non transaction related errors
@@ -246,6 +260,8 @@ exports.newUser = async (req, res) => {
 
 /**
  * @async update user data in db
+ * @param {object} req
+ * @param {object} res
  */
 exports.editUser = async (req, res) => {
     
