@@ -252,7 +252,8 @@ exports.getDaySummary = async (req, res) => {
             "status_id"
             )
         .innerJoin("users_view", "users_view.user_id", "man_shifts.user_id" )
-        .where({month_id: MonthId , day_number: dayNumber})
+        .whereNot({ status_id: 1 })
+        .andWhere({month_id: MonthId , day_number: dayNumber})
         .andWhere({role_id: roleId})
         .whereIn("man_shifts.user_id", knex.select("users_view.user_id").from("users_view"));
         return res.status(200).json(daySummary);
