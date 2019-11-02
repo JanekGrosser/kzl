@@ -87,13 +87,12 @@ exports.getFollowingMonths = async (req, res) => {
  * @async Function returns requested months current phase
  * @returns {object} res - response object
  * Phases:
- *  1 - Reservation
+ *  1 - Reservations
  *  2 - Approval
  *  3 - Approved/Review
  *  4 - Current
  *  5 - Past
  *  6 - Not avaible
- * To help deal with summer/winter timezone change (fck this shit) 02:00 am is assumed "midnight"
  * @param {object} req - Request object
  * @param {object} req.query Request query
  * @param {number} req.query.month_id - requested month id
@@ -147,7 +146,7 @@ exports.getMonthsPhase = async (req, res) => {
             } else {
                 throw Error("Unexpected date parsing error");
             };
-            console.log(monthPhase.phase)
+            // console.log(monthPhase.phase)
             return monthPhase;
         };
         return res.status(200).json(monthInPhase(month.year_month));

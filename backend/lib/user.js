@@ -89,6 +89,44 @@ exports.listAllSubdivision = async (req, res) => {
 };
 
 /**
+ * @async - get users list based on subdivision and role
+ * @returns {object} res object
+ * @todo make to accept more diffremt query params
+ * @param {number} req.params.subdivision_id
+ * @param {number} req.query.role_id
+ */
+exports.usersQueriedList = async (req, res) => {
+    try {
+        if (req.params.subdivision_id && req.query.role_id) {
+            let subdivisionId = req.params.subdivision_id;
+            let roleId = req.query.role_id;
+            let users = await knex("users_view")
+                .select(
+                    "user_id",
+                    "username_csr",
+                    "first_name",
+                    "last_name",
+                    "phone_num",
+                    "user_subdivisions",
+                    "role",
+                    "role_id",
+                    "active")
+                .where({role_id: roleId})
+                .andWhere("user_subdivisions", "like", "%" + subdivisionId + "%")
+                .orderBy("user_id");
+            res.status(200).json(users);
+        } else {
+            res.status(400).json({error: "check query params"})
+        };
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    };
+};
+
+
+
+/**
  * @async - gets one user
  * @param {object} req
  * @param {object} res
