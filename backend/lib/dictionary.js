@@ -8,13 +8,13 @@ const general = require("./general");
 
 exports.getSubdivisionsDictionary = async (req, res) => {
     try {
-        let subdivisionIds = res.locals.payload.user_subdivisions;
+        let subdivisionIds = res.locals.payload.user_subdivisions.split(", ");
         let role = res.locals.payload.role;
         let subdivisions = await knex("subdivisions")
             .select()
             .modify((queryBuilder)=>{
                 if (role !== "adm") {
-                    queryBuilder.where("subdivision_id", "like", subdivisionIds);
+                    queryBuilder.whereIn("subdivision_id", subdivisionIds);
                 }
             });
         return res.status(200).json(subdivisions);
