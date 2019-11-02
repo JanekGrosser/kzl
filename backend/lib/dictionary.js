@@ -8,9 +8,16 @@ const general = require("./general");
 
 exports.getSubdivisionsDictionary = async (req, res) => {
     try {
-        const subdivisions = await knex("subdivisions").select();
+        let subdivisionIds = res.locals.payload.user_subdivisions;
+        let role = res.locals.payload.role;
+        let subdivisions = await knex("subdivisions")
+            .select()
+            .modify((queryBuilder)=>{
+                if (role !== "adm") {
+                    queryBuilder.where("subdivision_id", "like", subdivisionIds);
+                }
+            });
         return res.status(200).json(subdivisions);
-
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);
