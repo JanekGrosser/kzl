@@ -145,7 +145,7 @@ exports.getMonthsPhase = async (req, res) => {
             } else if (dateFns.isAfter(requestedStart, currentPlusFiveMonths)) {
                 monthPhase.phase = "notAvaible"
             } else {
-                throw Error({message: "Unexpected date parsing error"});
+                throw Error("Unexpected date parsing error");
             };
             console.log(monthPhase.phase)
             return monthPhase;
