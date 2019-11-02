@@ -1,7 +1,6 @@
 /**
  * @function
  * @returns current yearMonth string (YYYY-M(M))
- * @todo add folowing zero in days
  */
 exports.currentYearMonth = () => {
     let currentDate = new Date();
