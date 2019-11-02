@@ -1,84 +1,147 @@
 "use-strict";
-//TODO add missing try catch blocks
-//TODO consider always using username_csr instead od user_id in requests
-
 const jwt = require("jsonwebtoken");
-
 const config = require("../config/config");
 const knex = require("../config/knex");
 
 /**
- * Middleware function checks if token from request authorization header is valid.
- * On success it passes decoded token payload to next middleware.
- * On failure it returns 401 response.
- */
+ * @async Middleware function checks if token from request authorization header is valid.
+ * @returns On success it passes decoded token payload to next middleware.
+ * @returns On failure it returns 401 response.
+ * @param {object} req 
+ * @param {object} req.headers 
+ * @param {string} req.headers.authorization
+ * @param {object} res
+ * @param {object} next
+
+*/
 exports.checkJwt = async (req, res, next) => {
     try {
         const bearer = req.headers.authorization;
         //Remove "Bearer " part from authorization header
         let token = bearer.slice(7);
-        // console.log(token);
         //Verify if token is ok
         res.locals.payload = jwt.verify(token, config.jwtSecret);
-    } catch (error) {
+        //Set verified token payload to res.locals and pass to next middleware
+        if (res.locals.payload) {
+            return next();
+        };
+    } catch (error) { //TODO seperate error response and bad token response
         return res.sendStatus(403);
-    };
-    //Set verified token payload to res.locals and pass to next middleware
-    if (res.locals.payload) {
-        return next();
     };
 };
 
 /**
- * Middleware function checks if user has certain role.
+ * @async Middleware function checks if user has certain role.
+ * @returns On success just passes to next
+ * @returns On failure returns 403 server response
  * @param {array} roles - Role names
- */
+ * @param {object} req
+ * @param {object} res
+ * @param {object} res.locals
+ * @param {string} res.locals.payload.id
+ * @param {object} next
+*/
 exports.hasRole = (roles) => {
     //Return function syntax is required for middleware to accept custom parameters
     return async (req, res, next) => {
-        // console.log(res.locals)
-        //Get user id from previous middleware
-        const id = res.locals.payload.id;
-        //Get user data from DB
-        const user = await knex("users_view")
-            .where({ user_id: id })
-            .first("user_id", "user_subdivisions", "role", "active");
-        //if role from token payload matches the user's role pulled from DB then authorize access
-        if (roles.includes(user.role)) {
-            return next();
-        //else just send status to limit response details for unauthorized request
-        } else {
-            return res.sendStatus(403).end();
-        };
-    };
-};
-
-/**
- * Middleware function checks if user has certain role OR requesting user requests own details
- * @param {array} roles  - Role names
- */
-exports.hasRoleOrIdMatch = (roles) => {
-    //Return function syntax is required for middleware to accept custom parameters
-    return async (req, res, next) => {
-        //Get user id from previous middleware
-        const id = res.locals.payload.id;
-        const requestedId = parseInt(req.params.user_id);
-        //If user requests his own details, authorize
-        if (id === requestedId){
-            return next();
-        //Or check if has requred role
-        } else {
+        try {
+            //Get user id from previous middleware
+            let userId = res.locals.payload.id;
             //Get user data from DB
             const user = await knex("users_view")
-                .where({ user_id: id })
-                .first("user_id", "user_subdivisions", "role", "active")
-            //If role from token payload matches the user's role pulled from DB then authorize access
+                .where({ user_id: userId })
+                .first("user_id", "user_subdivisions", "role", "active");
+            //if role from token payload matches the user's role pulled from DB then authorize access
             if (roles.includes(user.role)) {
                 return next();
                 //else just send status to limit response details for unauthorized request
             } else {
                 return res.sendStatus(403).end();
             };
+        } catch(error) {
+            console.log(error);
+            return res.sendStatus(500);            
         };
     };
+};
+
+/**
+ * @async Middleware function checks if user has certain role OR requesting user requests own details
+ * @returns On success passes to next function/middleware
+ * @returns On failure 403
+ * @param {array} roles - Role names
+ * @param {object} req
+ * @param {object} req.locals
+ * @param {object} req.locals.payload
+ * @param {number} req.locals.payload.id
+ * @param {object} req.params
+ * @param {string} req.params.user_id //TODO camelCase?
+ * @param {object} res
+ * @param {object} next
+ */
+exports.hasRoleOrIdMatch = (roles) => {
+    //Return function syntax is required for middleware to accept custom parameters
+    return async (req, res, next) => {
+        try {
+            //Get user id from previous middleware
+            let userId = res.locals.payload.id;
+            const requestedId = parseInt(req.params.user_id);
+            //If user requests his own details, authorize
+            if (userId === requestedId) {
+                return next();
+                //Or check if has requred role
+            } else {
+                //Get user data from DB
+                let user = await knex("users_view")
+                    .where({ user_id: userId })
+                    .first("user_id", "user_subdivisions", "role", "active")
+                //If role from token payload matches the user's role pulled from DB then authorize access
+                if (roles.includes(user.role)) {
+                    return next();
+                    //else just send status to limit response details for unauthorized request
+                } else {
+                    return res.sendStatus(403).end();
+                };
+            };
+        } catch (error) {
+            console.log(error);
+            return res.sendStatus(500);
+        };
+    };
+};
+
+/**
+ * @async - Middleware comapares users subdivision with requested subdivision data parameter
+ * @returns On success passes to next function/middleware
+ * @returns On failure 403
+ * @param {string} req.locals.payload.user_subdivisions //TODO Array
+ * @param {object} req
+ * @param {object} req.params
+ * @param {string} req.params.subdivision_id //TODO Array
+ * @param {object} res
+ * @param {object} res.locals
+ * @param {object} res.locals.payload
+ * @param {string} res.locals.payload.role
+ * @param {object} next
+ */
+exports.hasSubdivisionAccess = async (req, res, next) => {
+    try {
+        // let userId = req.locals.payload.id;
+        let userRole = res.locals.payload.role;
+        if (userRole.includes("adm")) {
+            return next();
+        };
+        let userSubdivisions = res.locals.payload.user_subdivisions;
+        let requestedSubdivision = req.params.subdivision_id;
+        console.log(`users:${userSubdivisions}`);
+        console.log(`requested:${requestedSubdivision}`);
+        if (userSubdivisions.includes(requestedSubdivision)) {
+            return next();
+        } else {
+            return res.status(403).json("No acces to this subdivisions data");
+        }
+    } catch (error){
+        console.log(error);
+        res.sendStatus(500);
+    }
 };

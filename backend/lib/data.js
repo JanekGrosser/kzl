@@ -2,17 +2,22 @@
 //TODO unify integer/string in values when diffrent types need to be compared 
 //TODO check to ensure not blocking the Event Loop
 const knex = require("../config/knex");
+const general = require("./general");
 
 
 /**
  * @async - Get selected user shifts calendar for the current month 
- * @returns - Api server response and data
+ * @returns - Api server response and requested shifts data ordered by month and shift id
+ * @param {object} req
+ * @param {object} req.params
+ * @param {number} req.params.user_id
+ * @param {object} res
  */
 exports.getCurrentShifts = async (req, res) => {
     try {
         let id = req.params.user_id;
         //Get current year and month
-        let dateQueryString = currentYearMonth();
+        let dateQueryString = general.currentYearMonth();
         //Get current months id
         let yearMonth = await knex("months").first().where({ year_month: dateQueryString });
         //Get requested shifts form db
@@ -33,6 +38,12 @@ exports.getCurrentShifts = async (req, res) => {
 /**
  * @async - Get selected user shifts callendar for selected month
  * @returns - Api server response and data
+ * @param {object} req
+ * @param {object} req.params
+ * @param {object} req.params.user_id
+ * @param {object} req.query
+ * @param {object} req.query.month_id
+ * @param {object} res
  */
 exports.getUsersCalendars = async (req, res) => {
     try {
@@ -53,12 +64,18 @@ exports.getUsersCalendars = async (req, res) => {
 /**
  * @async - Edit users current calendar
  * @returns - Api server response
- * TODO wrap all save callendar functions into one, only with diffrent middleware and routes (if possible)
+ * @todo wrap all save callendar functions into one, only with diffrent middleware and routes (if possible)
+ * @todo more validation
+ * @param {object} req
+ * @param {object} req.body
+ * @param {json} req.body.shifts
+ * @param {object} req.params
+ * @param {number} req.params.user_id
+ * @param {object} res
  */
 exports.editCurrentCalendar = async (req, res) => { 
     try {
         //Check request params 
-        //TODO more request validation
         if (!req.body.shifts) {
             return res.status(400).json({ error: "Check reqest params" })
         };
@@ -66,25 +83,21 @@ exports.editCurrentCalendar = async (req, res) => {
         const { shifts } = req.body;
         console.log("***" + userId + ", " + shifts[0].user_id)
         if (userId !== shifts[0].user_id) return res.status(400).json({error:"request data and user IDs are diffrent"});
-        
-        //TODO VALIDATE
-        // console.log(shifts);
-
         let monthId = shifts[0].month_id;
         let trx = await knex.transaction();
-        let deleted = await trx("man_shifts")
+        await trx("man_shifts")
             .where({ user_id: userId }).andWhere({ month_id: monthId })
             .del()
             .catch((err) => {
                 trx.rollback();
                 throw Error(err);
             });
-        console.log(deleted);
+        // console.log(deleted);
         await trx("man_shifts")
             .insert(shifts)
             .then(() => {
-                trx.rollback();// change to commit afer test
-                // trx.commit();
+                // trx.rollback();// change to commit afer test
+                trx.commit();
                 return res.status(201).json({ ok: "Need something in reponse?" });
             })
             .catch((err) => {
@@ -103,12 +116,17 @@ exports.editCurrentCalendar = async (req, res) => {
 /**
  * @async - Save calendar in reservation phase
  * @returns - Api server response
+ * @todo - Better validation
+ * @param {object} req
+ * @param {object} req.body
+ * @param {JSON} req.body.shifts
+ * @param {number} req.params.user_id
+ * @param {object} res
  */
 
 exports.saveUsersCalendars = async (req, res) => {
     try {
-        //Check request params 
-        //TODO more request validation
+        //Check request params
         if(!req.body.shifts) {
             return res.status(400).json({error:"Check reqest params"})
         };
@@ -118,14 +136,13 @@ exports.saveUsersCalendars = async (req, res) => {
         let statusId = shifts[0].status_id;
         let now = new Date();
         let trx = await knex.transaction();
-        let deleted = await trx("man_shifts")
+        await trx("man_shifts")
         .where({ user_id: userId }).andWhere({ month_id: monthId})
         .del()
         .catch((err) =>{
             trx.rollback();
             throw Error(err);
         });
-        console.log(deleted);
         if (statusId === 2) {
             await trx("approval_sent_at")
             .insert({user_id: userId, month_id: monthId, sent_at: now})
@@ -156,6 +173,13 @@ exports.saveUsersCalendars = async (req, res) => {
 /**
  * @async - Save calendar by KZ in approval phase
  * @returns - Api server response
+ * @todo better validation
+ * @param {object} req
+ * @param {object} req.body
+ * @param {JSON} req.body.shifts
+ * @param {Objcet} req.params
+ * @param {number} req.params.user_id
+ * @param {object} res
  */
 
 exports.saveApprovalCalendars = async (req, res) => {
@@ -170,14 +194,13 @@ exports.saveApprovalCalendars = async (req, res) => {
         //Start stransaction
         let trx = await knex.transaction();
         //Delete all in range then insert new, rollback on error
-        let deleted = await trx("man_shifts")
+        await trx("man_shifts")
             .where({ user_id: userId }).andWhere({ month_id: monthId })
             .del()
             .catch((err) => {
                 trx.rollback();
                 throw Error(err);
             });
-        console.log(deleted);
         await trx("man_shifts")
             .insert(shifts)
             .then(() => {
@@ -197,8 +220,15 @@ exports.saveApprovalCalendars = async (req, res) => {
 
 
 /**
- * @async - Get day summary calendar for subdivision
+ * @async - Get day summary calendar for specific subdivision
  * @returns - Api server response and data
+ * @param {object} req
+ * @param {object} req.params
+ * @param {number} req.params.subdivision_id
+ * @param {object} req.query
+ * @param {number} req.query.monthId
+ * @param {number} req.query.dayNumber
+ * @param {object} res
  */
 
 exports.getDaySummary = async (req, res) => {
@@ -222,7 +252,8 @@ exports.getDaySummary = async (req, res) => {
             "status_id"
             )
         .innerJoin("users_view", "users_view.user_id", "man_shifts.user_id" )
-        .where({month_id: MonthId , day_number: dayNumber})
+        .whereNot({ status_id: 1 })
+        .andWhere({month_id: MonthId , day_number: dayNumber})
         .andWhere({role_id: roleId})
         .whereIn("man_shifts.user_id", knex.select("users_view.user_id").from("users_view"));
         return res.status(200).json(daySummary);
@@ -234,15 +265,16 @@ exports.getDaySummary = async (req, res) => {
 
 /**
  * @async - Function save changes made in summary calendar view
- * @param req 
- * @param res
- * @param req.body.shifts.user_id
- * @param req.body.shifts.month_id
- * @param req.body.shifts.day_number
- * @param req.body.shifts.shift_id
- * @param req.body.shifts.status_id
- * @param req.query.monthId
- * @param req.query.dayNumber
+ * @todo better validation
+ * @param {object} req
+ * @param {nubmer} req.body.shifts.user_id
+ * @param {number} req.body.shifts.month_id
+ * @param {number} req.body.shifts.day_number
+ * @param {number} req.body.shifts.shift_id
+ * @param {number} req.body.shifts.status_id
+ * @param {number} req.query.monthId
+ * @param {number} req.query.dayNumber
+ * @param {object} res
  * @returns api server response
  */
 
@@ -267,14 +299,13 @@ exports.saveSummaryCalendars = async (req, res) => {
         //Start stransaction
         let trx = await knex.transaction();
         //Delete all in range then insert new, rollback on error
-        let deleted = await trx("man_shifts")
+        await trx("man_shifts")
             .where({ day_number: dayNumber }).andWhere({ month_id: monthId }).whereIn("user_id", userIds)
             .del()
             .catch((err) => {
                 trx.rollback();
                 throw Error(err);
             });
-        console.log(`***Deleted rows: ${deleted}`);
         await trx("man_shifts")
             .insert(shifts)
             .then(() => {
@@ -294,94 +325,3 @@ exports.saveSummaryCalendars = async (req, res) => {
 };
 
 
-//####DICTIONARY TABLES API####
-//TODO move to separate file
-
-exports.getSubdivisionsDictionary = async (req, res) => {
-    try{
-        const subdivisions = await knex("subdivisions").select();
-        return res.status(200).json(subdivisions);
-
-    }catch(error){
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getRolesDictionary = async (req, res) => {
-    try{
-        const roles = await knex("roles").select();
-        return res.status(200).json(roles);
-
-    }catch(error){
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getShiftsDictionary = async (req, res) => {
-    try{
-        const shifts = await knex("shifts").select();
-        return res.status(200).json(shifts);
-
-    }catch(error){
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getStatusDictionary = async (req, res) => {
-    try {
-        const status = await knex("status").select();
-        return res.status(200).json(status);
-
-    } catch (error) {
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getMonthsDictionary = async (req, res) => {
-    try {
-        const months = await knex("months").select();
-        return res.status(200).json(months);
-
-    } catch (error) {
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getCurrentMonth = async (req, res) => {
-    try {
-        let dateQueryString = currentYearMonth();
-        const months = await knex("months").first().where({year_month:dateQueryString});
-        return res.status(200).json(months);
-    } catch (error) {
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-
-exports.getFollowingMonths = async (req, res) => {
-    try {
-        let dateQueryString = currentYearMonth();
-        const months = await knex("months").select().where("year_month", ">", dateQueryString).limit(5).orderBy("month_id");
-        return res.status(200).json(months);
-    } catch (error) {
-        console.log(error);
-        return res.sendStatus(500);
-    };
-};
-/**
- * @function
- * @returns current yearMonth string (YYYY-M(M))
- */
-function currentYearMonth () {
-    let currentDate = new Date();
-    let currentMonth = currentDate.getMonth() + 1;
-    let currentYear = currentDate.getFullYear();
-    //Concatenate year and month
-    let dateQueryString = currentYear + "-" + currentMonth;
-    return dateQueryString;
-}
