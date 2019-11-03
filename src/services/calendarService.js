@@ -3,6 +3,8 @@ import statusService from "./statusService";
 
 // TODO
 class CalendarService {
+
+
     fetchDailyCalendar(monthId, roleId, subdivisionId, dayNumber) {
         var promise = new Promise((resolve, reject) => {
             axios
@@ -62,6 +64,29 @@ class CalendarService {
         });
 
         return promise;
+    }
+
+    confirmDailyCalendar(dayCalendar, monthId, roleId, dayNumber, monthPhase) {
+
+    }
+
+    isEditable(monthPhase, userRoleId) {
+        console.log(monthPhase, userRoleId);
+        switch (userRoleId) {
+            case 1:
+                return true;
+            case 2:
+            case 3:
+                return monthPhase === "reservations"
+            case 4:
+                return false;
+            case 5:
+                return monthPhase === "current" || 
+                    monthPhase === "approval" || 
+                    monthPhase === "approved"
+            default:
+                return false
+        }
     }
 
     /**

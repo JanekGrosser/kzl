@@ -70,7 +70,7 @@ class ShiftService {
      * @returns {object} { <shift_id>: <count> }
      */
     getDayCalendarSummary(dayCalendar, possibleShiftsObject) {
-        console.log(dayCalendar);
+        console.log(possibleShiftsObject);
         var obj = possibleShiftsObject.reduce((acc,shift) => {
             acc[shift.shift_id] = 0
             return acc;
@@ -83,7 +83,6 @@ class ShiftService {
                 }
             });
         })
-        console.log(obj);
         return obj;
     }
 }

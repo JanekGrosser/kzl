@@ -11,6 +11,7 @@ import UserHeader from "../common/UserHeader";
 
 import "react-datepicker/dist/react-datepicker.css";
 import Legend from "../Legend";
+import authService from "../../services/authService";
 
 var l = lang();
 
@@ -29,7 +30,10 @@ class SummaryCalendar extends Component {
             selectedDate: new Date(),
             selectedRoleId: -1,
             selectedSubdivisionId: -1,
-            calendarSummary: {}
+            calendarSummary: {},
+            currentMonthPhase: "current",
+            alert: "",
+            alertMessage: ""
         };
         this.onDatePicked = this.onDatePicked.bind(this);
         this.onRoleSelected = this.onRoleSelected.bind(this);
@@ -38,6 +42,13 @@ class SummaryCalendar extends Component {
         this.onSave = this.onSave.bind(this);
         this.onReset = this.onReset.bind(this);
         this.onConfirm = this.onConfirm.bind(this);
+    }
+
+    clearAlert() {
+        this.setState({
+            alert: "",
+            alertMessage: ""
+        });
     }
 
     componentDidMount() {
@@ -58,9 +69,8 @@ class SummaryCalendar extends Component {
                         statusResp,
                         shiftsResp,
                         monthsResp,
-                        currentMonthResp,
+                        currentMonthResp
                     ) => {
-                        console.log(currentMonthResp);
                         var parsedMonths = monthsResp.data.map(
                             ({ month_id, year_month }) => {
                                 return {
@@ -70,7 +80,7 @@ class SummaryCalendar extends Component {
                                 };
                             }
                         );
-
+                        this.fetchMonthPhase(currentMonthResp.data.month_id);
                         this.setState({
                             subdivisions: subdivisionsResp.data,
                             roles: rolesResp.data.filter(
@@ -93,6 +103,21 @@ class SummaryCalendar extends Component {
         console.log("unmount");
     }
 
+    fetchMonthPhase(monthId) {
+        axios
+            .get("/data/months-phase", {
+                params: {
+                    month_id: monthId
+                }
+            })
+            .then(resp => {
+                console.log(resp.data);
+                this.setState({
+                    currentMonthPhase: resp.data.phase
+                });
+            });
+    }
+
     fetchUsers(roleId, subdivisionId) {
         if (this.isDataSelectedForUserQuery(roleId, subdivisionId)) {
             axios
@@ -110,7 +135,9 @@ class SummaryCalendar extends Component {
     }
 
     fetchDayCalendar(monthId, roleId, subdivisionId, dayNumber) {
+        console.log("asdaaaa", monthId, roleId, subdivisionId, dayNumber);
         if (this.isDataSelected(monthId, roleId, subdivisionId, dayNumber)) {
+            console.log("asd");
             calendarService
                 .fetchDailyCalendar(monthId, roleId, subdivisionId, dayNumber)
                 .then(dayShifts => {
@@ -121,7 +148,7 @@ class SummaryCalendar extends Component {
                         dayCalendarShifts: dayCalendar,
                         calendarSummary: shiftService.getDayCalendarSummary(
                             dayCalendar,
-                            this.getShifts()
+                            this.getShifts(roleId)
                         )
                     });
                 });
@@ -139,6 +166,7 @@ class SummaryCalendar extends Component {
             this.state.selectedSubdivisionId,
             selectedDate.getDate()
         );
+        this.fetchMonthPhase(month.month_id);
         this.setState({
             selectedDate,
             selectedMonthId: month.month_id
@@ -155,7 +183,7 @@ class SummaryCalendar extends Component {
         this.fetchDayCalendar(
             month.month_id,
             roleId,
-            this.state.subdivisionId,
+            this.state.selectedSubdivisionId,
             this.state.selectedDate.getDate()
         );
         this.setState({
@@ -182,33 +210,39 @@ class SummaryCalendar extends Component {
     }
 
     onCellClicked(userId, shiftId) {
-        console.log(userId, shiftId);
-        var dayCalendarShifts = JSON.parse(
-            JSON.stringify(this.state.dayCalendarShifts)
-        );
-        if (dayCalendarShifts[userId] !== undefined) {
-            var status = dayCalendarShifts[userId][shiftId];
-            var newStatus = statusService.shiftStatusId("approval", status);
-            if (newStatus) {
-                dayCalendarShifts[userId][shiftId] = newStatus;
+        if (this.isEditable()) {
+            var dayCalendarShifts = JSON.parse(
+                JSON.stringify(this.state.dayCalendarShifts)
+            );
+            if (dayCalendarShifts[userId] !== undefined) {
+                var status = dayCalendarShifts[userId][shiftId];
+                var newStatus = statusService.shiftStatusId(
+                    this.state.currentMonthPhase,
+                    status
+                );
+                if (newStatus) {
+                    dayCalendarShifts[userId][shiftId] = newStatus;
+                } else {
+                    delete dayCalendarShifts[userId][shiftId];
+                }
             } else {
-                delete dayCalendarShifts[userId][shiftId];
+                var newStatus = statusService.shiftStatusId(
+                    this.state.currentMonthPhase
+                );
+                dayCalendarShifts[userId] = {};
+                dayCalendarShifts[userId][shiftId] = newStatus;
             }
-        } else {
-            var newStatus = statusService.shiftStatusId("approval");
-            dayCalendarShifts[userId] = {};
-            dayCalendarShifts[userId][shiftId] = newStatus;
+
+            var calendarSummary = shiftService.getDayCalendarSummary(
+                dayCalendarShifts,
+                this.getShifts
+            );
+
+            this.setState({
+                dayCalendarShifts,
+                calendarSummary
+            });
         }
-
-        var calendarSummary = shiftService.getDayCalendarSummary(
-            dayCalendarShifts,
-            this.getShifts()
-        );
-
-        this.setState({
-            dayCalendarShifts,
-            calendarSummary
-        });
     }
 
     onReset() {
@@ -222,7 +256,6 @@ class SummaryCalendar extends Component {
             selectedRoleId,
             selectedDate
         } = this.state;
-        console.log();
         calendarService.saveDailyCalendar(
             dayCalendarShifts,
             selectedMonthId,
@@ -231,26 +264,73 @@ class SummaryCalendar extends Component {
         );
     }
 
-    onConfirm() {
-        //
-    }
+    onConfirm() {}
 
     isDataSelectedForUserQuery(roleId, subdivisionId) {
-        return roleId && roleId !== -1 && subdivisionId && subdivisionId !== -1;
+        return (
+            roleId !== undefined &&
+            roleId !== -1 &&
+            subdivisionId !== undefined &&
+            subdivisionId !== -1
+        );
     }
 
     isDataSelected(monthId, roleId, subdivisionId, dayNumber) {
         return (
-            monthId &&
+            monthId !== undefined &&
             monthId !== -1 &&
             this.isDataSelectedForUserQuery(roleId, subdivisionId) &&
-            dayNumber &&
+            dayNumber !== undefined &&
             dayNumber !== -1
         );
     }
 
     areResultsEmpty() {
         return this.state.users.length === 0;
+    }
+
+    isEditable() {
+        return calendarService.isEditable(
+            this.state.currentMonthPhase,
+            authService.getUserRoleId()
+        );
+    }
+
+    /**
+     * Returns an alert if required. Alert from state (alert variatn and message)
+     * takes precedence
+     */
+    getAlertIfNeeded() {
+        if (this.state.alert !== "") {
+            return (
+                <Alert variant={this.state.alert}>
+                    {this.state.alertMessage}
+                </Alert>
+            );
+        }
+
+        if (this.areResultsEmpty()) {
+            return <Alert variant="warning">{l.noResults}</Alert>;
+        }
+
+        switch (this.state.currentMonthPhase) {
+            case "current":
+                return (
+                    <Alert variant="info">Edytujesz biezacy kalendarz</Alert>
+                );
+            case "past":
+                return (
+                    <Alert variant="warning">
+                        Nie mozna edytowac kalendarza z przeszlosci
+                    </Alert>
+                );
+            case "reservations":
+                return (
+                    <Alert variant="info">
+                        Przeglądasz kalendarz rezerwacji
+                    </Alert>
+                );
+        }
     }
 
     getUsers() {
@@ -262,9 +342,12 @@ class SummaryCalendar extends Component {
     }
 
     getShifts(roleId) {
-        return Object.values(this.state.shifts).filter(
-            s => s.role_id == (roleId || this.state.selectedRoleId)
+        var role = roleId ? roleId : this.state.selectedRoleId;
+        var ojb = Object.values(this.state.shifts).filter(
+            s => s.role_id == role
         );
+        console.log(ojb);
+        return ojb;
     }
 
     render() {
@@ -324,7 +407,7 @@ class SummaryCalendar extends Component {
                     </Form.Group>
                     <Form.Group>
                         {this.state.selectedMonthId !== -1 &&
-                        !this.state.calendarInApproval ? (
+                        this.isEditable() ? (
                             <ButtonToolbar>
                                 <Button variant="primary" onClick={this.onSave}>
                                     <i className="fas fa-save"></i>Zapisz
@@ -347,90 +430,103 @@ class SummaryCalendar extends Component {
                         )}
                     </Form.Group>
                 </div>
-                {this.areResultsEmpty() ? (
-                    <Alert variant="info">{l.noUserResults}</Alert>
-                ) : (
-                    <>
-                        <Table className={"current"} bordered responsive>
-                            <thead className={"thead-dark"}>
-                                <tr>
-                                    <th className="cross-section">
-                                        Technik/Zmiana
-                                    </th>
-                                    {this.getShifts().map(shift => {
+                {this.getAlertIfNeeded()}
+                <>
+                    <Table
+                        className={
+                            "summary-daily " + this.state.currentMonthPhase
+                        }
+                        bordered
+                        responsive
+                    >
+                        <thead className={"thead-dark"}>
+                            <tr>
+                                <th className="cross-section" key="0">
+                                    Technik/Zmiana
+                                </th>
+                                {this.getShifts().map(shift => {
+                                    return (
+                                        <th
+                                            key={
+                                                "shift-header-" + shift.shift_id
+                                            }
+                                        >
+                                            {util.convertMinsToHrsMins(
+                                                shift.shift_start
+                                            )}
+                                        </th>
+                                    );
+                                })}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {this.getUsers().map(
+                                ({
+                                    user_id,
+                                    first_name,
+                                    last_name,
+                                    username_csr
+                                }) => {
+                                    var shifts =
+                                        this.state.dayCalendarShifts[user_id] ||
+                                        {};
+                                    return (
+                                        <tr key={"user-entry-" + user_id}>
+                                            <td key="0">
+                                                {first_name} {last_name}(
+                                                {username_csr})
+                                            </td>
+                                            {this.getShifts().map(
+                                                ({ shift_id }) => {
+                                                    return (
+                                                        <td
+                                                            className={statusService.getClassForStatusId(
+                                                                shifts[shift_id]
+                                                            )}
+                                                            onClick={() =>
+                                                                this.onCellClicked(
+                                                                    user_id,
+                                                                    shift_id
+                                                                )
+                                                            }
+                                                            key={
+                                                                "shift-" +
+                                                                shift_id
+                                                            }
+                                                        ></td>
+                                                    );
+                                                }
+                                            )}
+                                        </tr>
+                                    );
+                                }
+                            )}
+                            <tr>
+                                <td style={{ border: "none" }} key="0"></td>
+                                {Object.keys(this.getCalendarSummary()).map(
+                                    shiftId => {
                                         return (
-                                            <th>
-                                                {util.convertMinsToHrsMins(
-                                                    shift.shift_start
-                                                )}
-                                            </th>
-                                        );
-                                    })}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {this.getUsers().map(
-                                    ({
-                                        user_id,
-                                        first_name,
-                                        last_name,
-                                        username_csr
-                                    }) => {
-                                        var shifts =
-                                            this.state.dayCalendarShifts[
-                                                user_id
-                                            ] || {};
-                                        return (
-                                            <tr>
-                                                <td>
-                                                    {first_name} {last_name}(
-                                                    {username_csr})
-                                                </td>
-                                                {this.getShifts().map(
-                                                    ({ shift_id }) => {
-                                                        return (
-                                                            <td
-                                                                className={statusService.getClassForStatusId(
-                                                                    shifts[
-                                                                        shift_id
-                                                                    ]
-                                                                )}
-                                                                onClick={() =>
-                                                                    this.onCellClicked(
-                                                                        user_id,
-                                                                        shift_id
-                                                                    )
-                                                                }
-                                                            ></td>
-                                                        );
-                                                    }
-                                                )}
-                                            </tr>
+                                            <td
+                                                key={"shift-summary-" + shiftId}
+                                            >
+                                                {
+                                                    this.state.calendarSummary[
+                                                        shiftId
+                                                    ]
+                                                }
+                                            </td>
                                         );
                                     }
                                 )}
-                                <tr>
-                                    <td style={{ border: "none" }}></td>
-                                    {Object.keys(this.getCalendarSummary()).map(
-                                        shiftId => {
-                                            return (
-                                                <td>
-                                                    {
-                                                        this.state
-                                                            .calendarSummary[
-                                                            shiftId
-                                                        ]
-                                                    }
-                                                </td>
-                                            );
-                                        }
-                                    )}
-                                </tr>
-                            </tbody>
-                        </Table>
-                        <Legend ids={[2, 3, 4, 5]}></Legend>
-                    </>
-                )}
+                            </tr>
+                        </tbody>
+                    </Table>
+                    <Legend
+                        ids={statusService.getStatusIdsForPhase(
+                            this.state.currentMonthPhase
+                        )}
+                    ></Legend>
+                </>
             </>
         );
     }

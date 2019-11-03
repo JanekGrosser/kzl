@@ -24,7 +24,6 @@ class StatusService {
     }
 
     shiftStatusId(monthStatus, currentStatusId) {
-        console.log(monthStatus,currentStatusId);
         switch(monthStatus) {
             case "approval":
                 switch(currentStatusId) {
@@ -37,14 +36,63 @@ class StatusService {
                     case undefined:
                         return 3; 
                 }
+            case "current":
+                //switch()
+                switch(currentStatusId) {
+                    case 8:
+                        return undefined;
+                    case 5:
+                        return 9;
+                    case 9:
+                        return 5;
+                    case undefined:
+                        return 8;
+                }
+            case "reservations":
+                switch(currentStatusId) {
+                    case 1:
+                        return undefined;
+                    case undefined:
+                        return 1;
+                }
+            case "past":
+                return currentStatusId;
             default:
                 console.error("NO FOUND");
         }
 
     }
+
+    /**
+     * From a user perspective, it doesn't matter if it's approved-added, 
+     * approved-removed in the current phase.
+     * Each phase should set the statuses to a baseline one - for example
+     * when going from 3 to 4, statuses should be removed or set as approved
+     * @param {} phase 
+     */
+    getStatusIdsForPhase(phase) {
+        switch (phase) {
+            case "past":
+                return [0]
+            case "reservations":
+                return [2];
+            case "approval":
+                return [2,3,4];
+            case "approved":
+                return [5,6,7];
+            case "current":
+                return [5,8,9];
+            default:
+                return [2,3,4,5,6];
+        }
+    }
+
+    getStatusAfterConfirm(monthStatus, statusId) {
+
+    }
     
-    getStatusIds() {
-        return [1,2,3,4,5,6,7,8,9]
+    getAllStatusIds() {
+        return [0,1,2,3,4,5,6,7,8,9]
     }
     /**
      * 
@@ -57,6 +105,8 @@ class StatusService {
      */
     getClassForStatusId(statusId) {
         switch (statusId) {
+            case 0:
+                return "past";
             case 1:
                 return "editable";
             case 2:

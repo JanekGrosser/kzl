@@ -3,7 +3,7 @@ import statusService from "../services/statusService";
 
 class Legend extends Component {
     render() {
-        var ids = this.props.ids || statusService.getStatusIds();
+        var ids = this.props.ids || statusService.getAllStatusIds();
         return (
             <ul className="legenda">
                 {ids.map(id => {

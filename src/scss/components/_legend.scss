@@ -30,14 +30,21 @@
             background-color: $success-background;
         }
 
+        &.past {
+            color: $info-text;
+            background: $info-background;
+        }
+
         &.approval-removed,
-        &.approved-removed {
+        &.approved-removed,
+        &.current-removed {
             color: $danger-text;
             background-color: $danger-background;
         }
 
         &.approval-added,
-        &.approved-added {
+        &.approved-added,
+        &.current-added {
             color: $warning-text;
             background-color: $warning-background;
         }

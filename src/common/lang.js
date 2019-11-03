@@ -55,10 +55,16 @@ var translations = {
         noResults: "Brak wyników",
         noUserResults: "Brak użytkowników",
         editable: "Zapisany (kopia robocza)",
-        approval: "Do zatwierdzenia",
+        approval: "Wysłane do zatwierdzenia",
+        disabled: "Termin wykonany",
         "approval-added": "Dodano termin",
         "approval-removed": "Usunięto termin",
         "approved": "Zatwierdzono",
+        "approved-added": "Dodano termin",
+        "approved-removed": "Usunięto termin",
+        "current-added": "Dodano termin",
+        "current-removed": "Usunięto termin",
+        "past": "Wykonano"
     }
 }
 

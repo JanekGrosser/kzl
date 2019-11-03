@@ -1,7 +1,19 @@
 main {
     &.main-view {
         &.summary-daily {
+
+            .alert {
+                margin-bottom: 1rem;
+                margin-right: 0;
+            }
             
+            .form-group {
+                margin-bottom: 0;
+
+                select, .react-datepicker-wrapper {
+                    margin-bottom: 1rem;
+                }
+            }
             .selectors {
                 display: flex;
                 flex-flow: wrap;
@@ -9,7 +21,32 @@ main {
             }
             .btn-toolbar {
                 button {
-                    margin: 0 1rem 0 0;
+                    margin: 0rem 1rem 1rem 0;
+                }
+            }
+
+            table.summary-daily  {
+                &.past {
+                    td {
+                        &.approved,
+                        &.current-added,
+                        &.current-removed {
+                            background-color: $info-background;
+                            color: $info-text;
+                        }
+                        &:hover {
+                            cursor: not-allowed;
+                        }
+                    }
+                }
+
+                &.past,
+                &.reservations {
+                    td {
+                        &:hover {
+                            cursor: not-allowed;
+                        }
+                    }
                 }
             }
         }
