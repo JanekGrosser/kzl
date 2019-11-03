@@ -22,7 +22,7 @@ router.get("/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm",
 router.post("/:user_id", middleware.checkJwt, middleware.hasRole(["adm", "koz", "koo"]), userController.editUser);
 router.delete("/:user_id", middleware.checkJwt, middleware.hasRole(["adm", "koz"]), userController.deleteUser);
 
-router.get("/approval-timestamps/:month_id", middleware.checkJwt, middleware.hasRole(["adm", "koz"]), userController.getUserApprovalTimestamp);
+router.get("/approval-time/list", middleware.checkJwt, middleware.hasRole(["adm", "koz"]), userController.getUserApprovalTimestamp);
 
 
 module.exports = router;

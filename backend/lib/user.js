@@ -13,18 +13,21 @@ const saltRounds = 10;
  * @async - Get sorted list of users sent to approval timestamps
  * @returns - Api server response and requested data
  * @param {object} req
- * @param {object} req.params
- * @param {number} req.params.month_id
+ * @param {object} req.query
+ * @param {number} req.query.month_id
+ * @param {number} req.query.subdivision_id
  * @param {object} res
  */
 exports.getUserApprovalTimestamp = async (req,res) => {
     try {
-        if (!req.params.month_id) return res.status(400).json({error:"Check request params"});
-        let monthId = req.params.month_id;
+        if (!(req.query.month_id) && (req.query.subdivision_id)) return res.status(400).json({error:"Check request params"});
+        let monthId = req.query.month_id;
+        let subdivisionId = req.query.subdivision_id
         let timestamp = await knex("approval_sent_at")
-        .where({ month_id: monthId })
-        .select()
-        .orderBy("sent_at", "desc");
+            .where({ month_id: monthId})
+            .innerJoin("users_view", "users_view.user_id", "approval_sent_at.user_id")
+            .whereIn("approval_sent_at.user_id", knex.select("users_view.user_id").from("users_view").where("users_view.user_subdivisions", "like", "%" + subdivisionId + "%"))
+            .orderBy("sent_at", "desc");
         return res.status(200).json(timestamp);
     } catch (error) {
         console.log(error);
