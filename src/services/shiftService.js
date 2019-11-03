@@ -1,4 +1,5 @@
 import authService from "./authService";
+import statusService from "./statusService";
 
 class ShiftService {
     /**
@@ -60,6 +61,30 @@ class ShiftService {
             shifts
         }
 
+    }
+
+        /**
+     * 
+     * @param {*} dayCalendar - day calendar object 
+     * @param {*} possibleShiftsObject 
+     * @returns {object} { <shift_id>: <count> }
+     */
+    getDayCalendarSummary(dayCalendar, possibleShiftsObject) {
+        console.log(dayCalendar);
+        var obj = possibleShiftsObject.reduce((acc,shift) => {
+            acc[shift.shift_id] = 0
+            return acc;
+        },{});
+        var countableStatuses = statusService.getCountableStatuses();
+        Object.keys(dayCalendar).forEach(userId => {
+            Object.keys(dayCalendar[userId]).forEach(shiftId => {
+                if (countableStatuses.indexOf(dayCalendar[userId][shiftId]) > -1) {
+                    obj[shiftId]++
+                }
+            });
+        })
+        console.log(obj);
+        return obj;
     }
 }
 

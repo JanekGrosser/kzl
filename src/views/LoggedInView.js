@@ -8,6 +8,7 @@ import { Route } from "react-router-dom";
 import UsersComponent from "../components/UsersComponent";
 import CurrentCalendar from "../components/calendars/CurrentCalendar";
 import BookingCalendar from "../components/calendars/BookingCalendar";
+import SummaryCalendar from "../components/calendars/SummaryCalendar";
 
 class LoggedInView extends Component {
 
@@ -77,12 +78,30 @@ class LoggedInView extends Component {
         
     }
 
+    /**
+     * Returns a class to be set on <main> based on the  URL route.
+     * Takes into account only the first segment /<segment>/.../.../
+     */
+    getClassname() {
+        var def = "main-view";
+        
+        var location = this.props.location.pathname;
+        var extra = "";
+
+        extra = location.split("/");
+        if (extra) {
+            extra = extra[1];
+        }
+        
+        return `${def} ${extra}`;
+    }
+
 
     render() {
         return (<>
             <Header {...this.state} onAddUser={this.onAddUser}/>
-                <main role="main" className="main-view">
-                    <Route path="/users">
+                <main role="main" className={this.getClassname()}>
+                    <Route exact path="/users">
                         { authService.isPriviligedRole() ? <UsersComponent pageSize={10} {...this.state} onUserChange={this.onUserChange} onUserDelete={this.onUserDelete} ></UsersComponent> : "" }
                     </Route>
                     <Route exact path="/">
@@ -91,6 +110,10 @@ class LoggedInView extends Component {
                     <Route exact path="/booking">
                         { authService.isRegularRole() ? <BookingCalendar/> : ""}
                     </Route>
+                    <Route exact path="/summary-daily/:dayNumber?/:monthId?">
+                        { authService.isPriviligedRole() ? <SummaryCalendar/> : ""}
+                    </Route>
+                    
                 </main>
             <Footer/>
         </>

@@ -1,11 +1,14 @@
 
 import axios from "axios";
-
-
+// TODO
 class UserService {
 
-    getUsers() {
+    fetchUsers() {
         
+    }
+
+    fetchAllUsers() {
+
     }
 
 }
