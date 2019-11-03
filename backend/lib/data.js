@@ -255,7 +255,7 @@ exports.getDaySummary = async (req, res) => {
         .whereNot({ status_id: 1 })
         .andWhere({month_id: MonthId , day_number: dayNumber})
         .andWhere({role_id: roleId})
-        .whereIn("man_shifts.user_id", knex.select("users_view.user_id").from("users_view"));
+        .whereIn("man_shifts.user_id", knex.select("users_view.user_id").from("users_view").where("users_view.user_subdivisions", "like", "%" + subdivisionId +"%"));
         return res.status(200).json(daySummary);
     } catch (error) {
         console.log(error);
