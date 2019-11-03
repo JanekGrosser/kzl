@@ -4,6 +4,35 @@
 const knex = require("../config/knex");
 const general = require("./general");
 
+/**
+ * @async - get shifts count for requested division, month and role
+ * @returns res -response object and data
+ * @param {object} req
+ * @param {object} req.query
+ * @param {number} req.query.role_id
+ * @param {number} req.query.month_id
+ * @param {number} req.query.subdivision_id
+ */
+exports.getShiftsCount = async (req, res) =>{
+    try {
+        if (!(req.query.role_id && req.query.month_id && req.query.subdivision_id)) res.status(400).json({error: "check query params"})
+        let roleId = req.query.role_id;
+        let monthId = req.query.month_id;
+        let subdivisionId = req.query.subdivision_id;
+        let count = await knex("division_shifts_view")
+            .count("shift_id", {as: "shifts_count"})
+            .select("day_number", "shift_id")
+            .where("user_subdivisions", "like", "%" + subdivisionId+"%")
+            .andWhere({ month_id: monthId, role_id: roleId})
+            .groupBy("day_number", "shift_id")
+            .orderBy("day_number", "shift_id");
+        res.status(200).json(count);
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    };
+};
+
 
 /**
  * @async - Get selected user shifts calendar for the current month 
