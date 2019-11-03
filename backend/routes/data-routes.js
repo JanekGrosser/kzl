@@ -10,6 +10,7 @@ const middleware = require("../middleware/middleware");
 router.get("/current-calendar/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm", "koo", "koz"]), dataController.getCurrentShifts);
 router.get("/users-calendars/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm", "koo", "koz"]), dataController.getUsersCalendars);
 router.get("/day-calendar/:subdivision_id", middleware.checkJwt, middleware.hasRole(["adm", "koo", "koz"]), dataController.getDaySummary);
+router.get("/shifts-count/", middleware.checkJwt, middleware.hasRole(["adm", "koo", "koz"]), dataController.getShiftsCount);
 
 
 router.post("/users-calendars/:user_id", middleware.checkJwt, middleware.hasRoleOrIdMatch(["adm"]), dataController.saveUsersCalendars);
