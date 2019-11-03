@@ -140,7 +140,8 @@ class SummaryCalendar extends Component {
             selectedDate.getDate()
         );
         this.setState({
-            selectedDate
+            selectedDate,
+            selectedMonthId: month.month_id
         });
     }
 

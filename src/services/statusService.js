@@ -29,13 +29,13 @@ class StatusService {
             case "approval":
                 switch(currentStatusId) {
                     case(2):
-                        return 7;
-                    case(6):
+                        return 4;
+                    case(3):
                         return undefined;
-                    case(7):
+                    case(4):
                         return 2;
                     case undefined:
-                        return 6; 
+                        return 3; 
                 }
             default:
                 console.error("NO FOUND");
