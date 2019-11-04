@@ -59,13 +59,13 @@ var translations = {
         editable: "Zapisany (kopia robocza)",
         approval: "Wysłane do zatwierdzenia",
         disabled: "Termin wykonany",
-        "approval-added": "Dodano termin",
-        "approval-removed": "Usunięto termin",
-        "approved": "Zatwierdzono",
+        "approval-added": "Dodano termin przed zatwierdzeniem",
+        "approval-removed": "Usunięto termin przed zatwierdzeniem",
+        "approved": "Zatwierdzony termin",
         "approved-added": "Dodano termin",
         "approved-removed": "Usunięto termin",
-        "current-added": "Dodano termin",
-        "current-removed": "Usunięto termin",
+        "current-added": "Dodano termin bieżący",
+        "current-removed": "Usunięto termin bieżący",
         "past": "Wykonano",
         alertCannotEditPastCalendar: "Kalendarz przeszły",
         alertEditingCurrentCalendar: "Kalendarz bieżacy",
@@ -80,7 +80,8 @@ var translations = {
         save: "Zapisz",
         sendToApproval: "Wyślij do zatwierdzenia",
         confirm: "Zatwierdź",
-        change: "Zmień"
+        change: "Zmień",
+        noResults: "Brak wyników"
     }
 }
 

@@ -20,6 +20,11 @@
             margin-right: .5rem;
         }
 
+        &.editable {
+            color: $primary-text;
+            background-color: $primary-background;
+        }
+
         &.approval {
             color: $info-text;
             background-color: $info-background;

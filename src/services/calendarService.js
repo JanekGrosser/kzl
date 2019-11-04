@@ -2,7 +2,6 @@ import axios from "axios";
 import statusService from "./statusService";
 import shiftService from "./shiftService";
 
-// TODO
 class CalendarService {
     fetchDailyCalendar(monthId, roleId, subdivisionId, dayNumber) {
         return new Promise((resolve, reject) => {
@@ -26,20 +25,21 @@ class CalendarService {
     }
 
     fetchMonthSummary(roleId, subdivisionId, monthId) {
-        return new Promise((resolve,reject) => {
-            axios.get("/data/shifts-count/",{
-                params: {
-                    role_id: roleId,
-                    subdivision_id: subdivisionId,
-                    month_id: monthId
-                }
-            })
-            .then((resp) => {
-                resolve(this.convertSummaryResponse(resp.data))
-            })
-            .catch(err => {
-                reject(err);
-            })
+        return new Promise((resolve, reject) => {
+            axios
+                .get("/data/shifts-count/", {
+                    params: {
+                        role_id: roleId,
+                        subdivision_id: subdivisionId,
+                        month_id: monthId
+                    }
+                })
+                .then(resp => {
+                    resolve(this.convertSummaryResponse(resp.data));
+                })
+                .catch(err => {
+                    reject(err);
+                });
         });
     }
 
@@ -52,7 +52,9 @@ class CalendarService {
                     }
                 })
                 .then(resp => {
-                    resolve(shiftService.parseShiftsResp(shifts, resp.data.shifts));
+                    resolve(
+                        shiftService.parseShiftsResp(shifts, resp.data.shifts)
+                    );
                 })
                 .catch(err => {
                     console.log(err);
@@ -67,18 +69,57 @@ class CalendarService {
      */
     saveMonthlyCalendar(calendar, userId, monthId) {
         return new Promise((resolve, reject) => {
-            axios.post(`/data/users-calendars/${userId}`, shiftService.toShiftRequestFormat(calendar,monthId, userId), {
-                params: {
-                    month_id: monthId
-                }
-            })
-            .then(resp => {
-                resolve(resp.data);
-            })
-            .catch(err => {
-                reject(err);
-            })
+            axios
+                .post(
+                    `/data/users-calendars/${userId}`,
+                    shiftService.toShiftRequestFormat(
+                        calendar,
+                        monthId,
+                        userId
+                    ),
+                    {
+                        params: {
+                            month_id: monthId
+                        }
+                    }
+                )
+                .then(resp => {
+                    resolve(resp.data);
+                })
+                .catch(err => {
+                    reject(err);
+                });
+        });
+    }
+
+    confirmMonthlyCalendar(calendar, userId, monthId, selectedMonthPhase) {
+        var { shifts } = shiftService.toShiftRequestFormat(
+            calendar,
+            monthId,
+            userId
+        );
+        shifts.map(shift => {
+            shift.status_id = shiftService.shiftStatusIdOnConfirm(selectedMonthPhase,shift.status_id)
+            return shift;
         })
+        return new Promise((resolve, reject) => {
+            axios
+                .post(
+                    `/data/users-calendars/${userId}`,
+                    { shifts },
+                    {
+                        params: {
+                            month_id: monthId
+                        }
+                    }
+                )
+                .then(resp => {
+                    resolve([resp, shifts]);
+                })
+                .catch(err => {
+                    reject(err);
+                });
+        });
     }
 
     // /**
@@ -166,17 +207,14 @@ class CalendarService {
             case 4:
                 return false;
             case 5:
-                return (
-                    monthPhase === "current" ||
-                    monthPhase === "approval"
-                );
+                return monthPhase === "current" || monthPhase === "approval";
             default:
                 return false;
         }
     }
 
     /**
-     * Returns object 
+     * Returns object
      * {
      *  <shift_1>: {
      *      <day_1>
@@ -184,15 +222,14 @@ class CalendarService {
      *  }
      *  ...
      * }
-     * @param {*} summary 
+     * @param {*} summary
      */
     convertSummaryResponse(summary) {
         var converted = {};
         summary.forEach(s => {
-            if (!converted[s.shift_id])
-                converted[s.shift_id] = {};
-            converted[s.shift_id][s.day_number] = s.shifts_count
-        })
+            if (!converted[s.shift_id]) converted[s.shift_id] = {};
+            converted[s.shift_id][s.day_number] = s.shifts_count;
+        });
         return converted;
     }
 

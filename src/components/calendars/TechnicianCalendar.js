@@ -31,7 +31,8 @@ class TechnicianCalendar extends Component {
             users: [],
             roles: [],
             subdivisions: [],
-            months: []
+            months: [],
+            approved: false
         };
 
         this.onUserSelected = this.onUserSelected.bind(this);
@@ -161,6 +162,11 @@ class TechnicianCalendar extends Component {
     }
 
     getAlertIfNeeded() {
+        if (!this.shouldDisplayTable()) {
+            return (
+                <Alert variant="warning">{l.noResults}</Alert>
+            )
+        }
         switch (this.state.currentMonthPhase) {
             case "current":
                 return (
@@ -267,8 +273,8 @@ class TechnicianCalendar extends Component {
     isEditable() {
         return calendarService.isEditable(
             this.state.currentMonthPhase,
-            authService.getUserRoleId()
-        );
+            authService.getUserRoleId(),            
+        ) && !this.approved;
     }
 
     onSubdivisionSelected(e) {
@@ -358,14 +364,28 @@ class TechnicianCalendar extends Component {
     }
 
     onSaveApproval() {
-
+        var calendar = JSON.parse(JSON.stringify(this.state.calendar));
+        calendarService.saveMonthlyCalendar(calendar, this.state.selectedUserId, this.state.selectedMonthId)
+            .then(cal => {
+                this.fetchSummary(this.state.selectedRoleId, this.state.selectedSubdivisionId, this.state.selectedMonthId);
+            });
     }
 
     onConfirmApproval() {
-
+        var calendar = JSON.parse(JSON.stringify(this.state.calendar));
+        calendarService.confirmMonthlyCalendar(calendar, this.state.selectedUserId, this.state.selectedMonthId, this.state.currentMonthPhase)
+            .then(res => {
+                var calendar = shiftService.parseShiftsResp(res[1], this.getShifts());
+                this.setState({
+                    calendar
+                })
+                this.fetchSummary(this.state.selectedRoleId, this.state.selectedSubdivisionId, this.state.selectedMonthId);
+            });
     }
 
-    onReset() {}
+    onReset() {
+        //TODO
+    }
 
     render() {
         return (
@@ -522,9 +542,7 @@ class TechnicianCalendar extends Component {
                             })}
                         </tbody>
                     </Table>
-                ) : (
-                    <Alert variant="warning">Brak wyników</Alert>
-                )}
+                ) : "" }
                 <Legend
                     ids={statusService.getStatusIdsForPhase(
                         this.state.currentMonthPhase

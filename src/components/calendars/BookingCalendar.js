@@ -6,6 +6,7 @@ import statusService from "../../services/statusService";
 import { Table, Alert, Form, Button, ButtonToolbar } from "react-bootstrap";
 import util from "../../util";
 import lang from "../../common/lang";
+import Legend from "../Legend";
 
 var l = lang();
 
@@ -244,19 +245,7 @@ class BookingCalendar extends Component {
                 </Alert>
                 {this.state.selectedMonthId !== -1 ? (
                     <>
-                        <ul className="legenda">
-                            {!this.state.calendarInApproval ? (
-                                <li>
-                                    <i className="fas fa-stop text-primary"></i>{" "}
-                                    - Termin wybrany
-                                </li>
-                            ) : (
-                                <li>
-                                    <i className="fas fa-stop text-info"></i> -
-                                    Termin wysłany do zatwierdzenia
-                                </li>
-                            )}
-                        </ul>
+                        <Legend ids={statusService.getStatusIdsForPhase("reservations", authService.getUserRoleId())}></Legend>
                         <Table
                             className={
                                 "booking " +

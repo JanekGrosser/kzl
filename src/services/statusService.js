@@ -3,27 +3,25 @@ import lang from "../common/lang";
 var l = lang();
 
 class StatusService {
-
     getCountableStatuses() {
-        return [2,3,5,6,8]
+        return [2, 3, 5, 6, 8];
     }
 
     shiftStatusId(monthStatus, currentStatusId) {
-        
-        switch(monthStatus) {
+        switch (monthStatus) {
             case "approval":
-                switch(currentStatusId) {
-                    case(2):
+                switch (currentStatusId) {
+                    case 2:
                         return 4;
-                    case(3):
+                    case 3:
                         return 0;
-                    case(4):
+                    case 4:
                         return 2;
                     default:
-                        return 3; 
+                        return 3;
                 }
             case "current":
-                switch(currentStatusId) {
+                switch (currentStatusId) {
                     case 8:
                         return 0;
                     case 5:
@@ -34,7 +32,7 @@ class StatusService {
                         return 8;
                 }
             case "reservations":
-                switch(currentStatusId) {
+                switch (currentStatusId) {
                     case 1:
                         return 0;
                     default:
@@ -45,53 +43,53 @@ class StatusService {
             default:
                 console.error("NO FOUND");
         }
-
     }
 
     /**
-     * From a user perspective, it doesn't matter if it's approved-added, 
+     * From a user perspective, it doesn't matter if it's approved-added,
      * approved-removed in the current phase.
      * Each phase should set the statuses to a baseline one - for example
      * when going from 3 to 4, statuses should be removed or set as approved
-     * @param {} phase 
+     * @param {} phase
      */
-    getStatusIdsForPhase(phase) {
+    getStatusIdsForPhase(phase, userRole) {
         switch (phase) {
             case "past":
-                return [-1]
+                return [-1];
             case "reservations":
+                if (userRole && [2, 3].indexOf(userRole) > -1) return [1, 2];
                 return [2];
             case "approval":
-                return [2,3,4];
+                return [2, 3, 4];
             case "approved":
-                return [5,6,7];
+                return [5, 6, 7];
             case "current":
-                return [5,8,9];
+                return [5, 8, 9];
             default:
-                return [2,3,4,5,6];
+                return [2, 3, 4, 5, 6];
         }
     }
 
     /**
      * status 0 for soft-delete
-     * @param {*} monthStatus 
-     * @param {*} currentStatusId 
+     * @param {*} monthStatus
+     * @param {*} currentStatusId
      */
     shiftStatusIdOnConfirm(monthStatus, currentStatusId) {
-        switch(monthStatus) {
+        switch (monthStatus) {
             case "approval":
-                switch(currentStatusId) {
-                    case(2):
+                switch (currentStatusId) {
+                    case 2:
                         return 5;
-                    case(3):
+                    case 3:
                         return 3;
-                    case(4):
+                    case 4:
                         return 4;
                     default:
                         return 0;
                 }
             case "reservations":
-                switch(currentStatusId) {
+                switch (currentStatusId) {
                     case 1:
                         return 2;
                     default:
@@ -102,18 +100,18 @@ class StatusService {
                 return 0;
         }
     }
-    
+
     getAllStatusIds() {
-        return [0,1,2,3,4,5,6,7,8,9]
+        return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     }
     /**
-     * 
+     *
      */
     getStatusDescriptionForStatusId(id) {
         return l[this.getClassForStatusId(id)];
     }
     /**
-     * 
+     *
      */
     getClassForStatusId(statusId) {
         switch (statusId) {
@@ -136,7 +134,7 @@ class StatusService {
             case 9:
                 return "current-removed";
             case -1:
-                return "past"
+                return "past";
             default:
                 return "";
         }
@@ -154,10 +152,10 @@ class StatusService {
     //     }
     // }
     /**
-     * 
-     * @param {*} shift_id 
-     * @param {*} day_number 
-     * @param {*} currentShifts 
+     *
+     * @param {*} shift_id
+     * @param {*} day_number
+     * @param {*} currentShifts
      */
     getStatusIdFromCurrentShifts(shift_id, day_number, currentShifts) {
         return currentShifts &&
@@ -166,7 +164,7 @@ class StatusService {
             ? currentShifts[shift_id][day_number].status_id
             : undefined;
     }
-};
+}
 
 var statusService = new StatusService();
 
