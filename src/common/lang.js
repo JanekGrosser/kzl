@@ -50,9 +50,11 @@ var translations = {
         search: "Szukaj",
         month: "Miesiąc",
         currentCalendar: "Kalendarz bieżący",
+        bookingCalendar: "Kalendarz rezerwacji grafiku",
         summaryDaily: "Kalendarz dzienny zbiorczy",
+        technicianCalendar: "Kalendarz technika",
         chooseTechnician: "Wybierz rodzaj technika",
-        noResults: "Brak wyników",
+        noTechnicians: "Brak techników",
         noUserResults: "Brak użytkowników",
         editable: "Zapisany (kopia robocza)",
         approval: "Wysłane do zatwierdzenia",
@@ -64,7 +66,21 @@ var translations = {
         "approved-removed": "Usunięto termin",
         "current-added": "Dodano termin",
         "current-removed": "Usunięto termin",
-        "past": "Wykonano"
+        "past": "Wykonano",
+        alertCannotEditPastCalendar: "Kalendarz przeszły",
+        alertEditingCurrentCalendar: "Kalendarz bieżacy",
+        alertDisplayingReservationCalendar: "Kalendarz rezerwacji",
+        alertCalendarConfirmed: "Kalendarz potwierdzony",
+        alertCalendarSaved: "Kalendarz zapisany",
+        alertCalendarCannotSaveCalendar: "Czas edycji kalendarza upłynął",
+        alertCalendarError: "Wystąpił błąd. Spróbuj ponownie",
+        technicianRole: "Rola technika",
+        technician: "Technik",
+        reset: "Resetuj",
+        save: "Zapisz",
+        sendToApproval: "Wyślij do zatwierdzenia",
+        confirm: "Zatwierdź",
+        change: "Zmień"
     }
 }
 

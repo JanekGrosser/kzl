@@ -1,13 +1,13 @@
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
-import l from "../common/lang";
+import lang from "../common/lang";
 import authService from "../services/authService";
 import { withRouter, Link } from "react-router-dom";
 import ChangePasswordModal from "./modal/ChangePasswordModal";
 import AddUserModal from "./modal/AddUserModal";
 import { Dropdown, Button, Navbar, Nav } from "react-bootstrap";
 
-var lang = l();
+var l = lang();
 
 class Header extends Component {
   constructor(props) {
@@ -15,7 +15,8 @@ class Header extends Component {
 
     this.state = {
       passwordModalOpened: false,
-      userModalOpened: false
+      userModalOpened: false,
+      expanded: false
     };
 
     this.onLogout = this.onLogout.bind(this);
@@ -23,6 +24,8 @@ class Header extends Component {
     this.hideAddUserModal = this.hideAddUserModal.bind(this);
     this.openPasswordModal = this.openPasswordModal.bind(this);
     this.openAddUserModal = this.openAddUserModal.bind(this);
+    this.onClick = this.onClick.bind(this);
+    this.toggleNavbar = this.toggleNavbar.bind(this);
     
   }
 
@@ -56,33 +59,46 @@ class Header extends Component {
     })
   }
   
+  onClick(path) {
+    this.setState({expanded: false})
+    this.props.history.push(path);
+  }
+
+  toggleNavbar() {
+    this.setState({
+      expanded: !this.state.expanded
+    })
+  }
 
   render() {
     return (
       <>
-        <Navbar className="box-shadow" collapseOnSelect bg="light" expand="lg">
-          <Navbar.Brand href="/">{lang.brand}</Navbar.Brand>
-          <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+        <Navbar collapseOnSelect className="box-shadow" bg="light" expand="lg" expanded={this.state.expanded}>
+          <Navbar.Brand>
+            <Link className="navbar-brand" to="/">{l.brand}</Link>
+          </Navbar.Brand>
+          <Navbar.Toggle aria-controls="responsive-navbar-nav" onClick={this.toggleNavbar}/>
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="navbar-nav mr-auto">
-              { authService.isRegularRole() ? <Link className="nav-link" to="/">Kalendarz biezacy</Link> : "" }
-              { authService.isRegularRole() ? <Link className="nav-link" to="/booking">Kalendarz rezerwacji grafiku</Link> : "" }
-              { authService.isSuperUserRole() ? <Nav.Link onClick={this.openAddUserModal}>{lang.addUser}</Nav.Link> : "" }
-              { authService.isPriviligedRole() ? <Link className="nav-link" to="/summary-daily">{lang.summaryDaily}</Link> : "" }
-              { authService.isPriviligedRole() ? <Link className="nav-link" to="/users">{lang.users}</Link> : "" }
-              <Nav.Link className="show-mobile" onClick={this.openPasswordModal}>{lang.changePassword}</Nav.Link>
-              <Nav.Link className="show-mobile text-danger" onClick={this.onLogout}>{lang.logout}</Nav.Link>
+              { authService.isRegularRole() ? <Nav.Item className="nav-link" onClick={() => this.onClick("/")}>{l.currentCalendar}</Nav.Item > : "" }
+              { authService.isRegularRole() ? <Nav.Item className="nav-link"  onClick={() => this.onClick("/booking")}>{l.bookingCalendar}</Nav.Item > : "" }
+              { authService.isSuperUserRole() ? <Nav.Item className="nav-link"  onClick={this.openAddUserModal}>{l.addUser}</Nav.Item> : "" }
+              { authService.isPriviligedRole() ? <Nav.Item className="nav-link"  onClick={() => this.onClick("/users")}>{l.users}</Nav.Item > : "" }
+              { authService.isPriviligedRole() ? <Nav.Item className="nav-link"  onClick={() => this.onClick("/summary-daily")}>{l.summaryDaily}</Nav.Item > : "" }
+              { authService.isPriviligedRole() ? <Nav.Item className="nav-link"  onClick={() => this.onClick("/technician")}>{l.technicianCalendar}</Nav.Item > : "" }
+              <Nav.Link className="show-mobile" onClick={this.openPasswordModal}>{l.changePassword}</Nav.Link>
+              <Nav.Link className="show-mobile text-danger" onClick={this.onLogout}>{l.logout}</Nav.Link>
             </Nav>
             <Dropdown>
               <Dropdown.Toggle variant="primary" id="dropdown-user">
                 <i className="fas fa-user"></i>{authService.getUsername()}
               </Dropdown.Toggle>
               <Dropdown.Menu>
-                <Dropdown.Item onClick={this.openPasswordModal}>{lang.changePassword}</Dropdown.Item>
+                <Dropdown.Item onClick={this.openPasswordModal}>{l.changePassword}</Dropdown.Item>
                 <Dropdown.Divider></Dropdown.Divider>
                 <Dropdown.Item>
                   <Button variant="outline-danger" onClick={this.onLogout}>
-                    <i className="fas fa-sign-out-alt"></i>{lang.logout}
+                    <i className="fas fa-sign-out-alt"></i>{l.logout}
                   </Button>
                 </Dropdown.Item>
               </Dropdown.Menu>

@@ -48,25 +48,24 @@ html {
             box-sizing: border-box;
             overflow: hidden;
             padding: 60px $calendar-margin 4 * $calendar-margin $calendar-margin;
-            
+
             h2 {
                 margin-top: 1rem;
             }
-            h1,h2,h3,h4 {
+            h1,
+            h2,
+            h3,
+            h4 {
                 margin-bottom: 1rem;
             }
 
-            .selectors {
-                .form-group {
-                    margin-right: 1rem;
-                }
-            }
+            
             .btn {
-                .fas, .fa {
-                    margin-right: .5rem;
+                .fas,
+                .fa {
+                    margin-right: 0.5rem;
                 }
             }
-
 
             .alert {
                 margin: $calendar-margin $calendar-margin 0 0;
@@ -100,21 +99,17 @@ html {
                 overflow-y: scroll;
             }
 
-            table.booking {
-                td {
-                    &:hover {
-                        background-color: rgba(0, 0, 0, 0.3);
-                    }
-                }
-            }
-
             table.summary-daily,
-            table.booking {
+            table.booking,
+            table.technician,
+            table.current {
                 table-layout: fixed;
-                td,th {
+                td,
+                th {
                     text-align: center;
                 }
-                td,th {
+                td,
+                th {
                     width: 50px;
                     &:first-child {
                         width: 150px;
@@ -129,7 +124,7 @@ html {
 
                 td {
                     &:hover {
-                        cursor:pointer;
+                        cursor: pointer;
                     }
                     &.approval {
                         background-color: $info-background;
@@ -284,5 +279,7 @@ html {
     @import "./scss/components/legend";
     @import "./scss/components/common";
     @import "./scss/calendars/summary-daily";
-    
+    @import "./scss/calendars/technician";
+    @import "./scss/calendars/current";
+    @import "./scss/calendars/booking";
 }

@@ -2,12 +2,14 @@ import React, { Component } from "react";
 import axios from "axios";
 import shiftService from "../../services/shiftService";
 import statusService from "../../services/statusService";
+import userService from "../../services/userService";
 import calendarService from "../../services/calendarService";
 import { Table, Form, Alert, Button, ButtonToolbar } from "react-bootstrap";
 import util from "../../util";
 import lang from "../../common/lang";
 import DatePicker from "react-datepicker";
 import UserHeader from "../common/UserHeader";
+import { withRouter } from "react-router-dom";
 
 import "react-datepicker/dist/react-datepicker.css";
 import Legend from "../Legend";
@@ -15,7 +17,12 @@ import authService from "../../services/authService";
 
 var l = lang();
 
-class SummaryCalendar extends Component {
+
+// TODO
+// refactor naming of boolean returning methods
+// move axios calls to services
+
+class SummaryDailyCalendar extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -42,6 +49,7 @@ class SummaryCalendar extends Component {
         this.onSave = this.onSave.bind(this);
         this.onReset = this.onReset.bind(this);
         this.onConfirm = this.onConfirm.bind(this);
+        this.onUserClicked = this.onUserClicked.bind(this);
     }
 
     clearAlert() {
@@ -80,6 +88,25 @@ class SummaryCalendar extends Component {
                                 };
                             }
                         );
+                        var params = this.props.match.params;
+
+                        var monthId = params.monthId;
+                        var roleId = params.roleId;
+                        var subdivisionId = params.subdivisionId;
+                        var dayNumber = params.dayNumber;
+
+                        var t = new Date();
+
+                        if (monthId !== undefined) {
+                            var m = monthsResp.data.find((m) => m.month_id == monthId).year_month;
+                            m = m.split("-");
+                            t = new Date(parseInt(m[0]),parseInt(m[1])-1,dayNumber);
+                        } 
+
+                        monthId = monthId || currentMonthResp.data.month_id;
+                        subdivisionId = subdivisionId || -1;
+                        roleId = roleId || -1;
+        
                         this.fetchMonthPhase(currentMonthResp.data.month_id);
                         this.setState({
                             subdivisions: subdivisionsResp.data,
@@ -91,8 +118,13 @@ class SummaryCalendar extends Component {
                             months: parsedMonths,
                             minDate: parsedMonths[0].date,
                             maxDate: parsedMonths[parsedMonths.length - 1].date,
-                            selectedMonthId: currentMonthResp.data.month_id
+                            selectedMonthId: monthId || currentMonthResp.data.month_id,
+                            selectedSubdivisionId: subdivisionId || -1,
+                            selectedRoleId: roleId || -1,
+                            selectedDate: t
                         });
+                        this.fetchUsers(roleId, subdivisionId);
+                        this.fetchDayCalendar(monthId,roleId,subdivisionId,dayNumber);
                     }
                 )
             );
@@ -111,7 +143,6 @@ class SummaryCalendar extends Component {
                 }
             })
             .then(resp => {
-                console.log(resp.data);
                 this.setState({
                     currentMonthPhase: resp.data.phase
                 });
@@ -120,24 +151,17 @@ class SummaryCalendar extends Component {
 
     fetchUsers(roleId, subdivisionId) {
         if (this.isDataSelectedForUserQuery(roleId, subdivisionId)) {
-            axios
-                .get(`/users/list/${subdivisionId}`, {
-                    params: {
-                        role_id: roleId
-                    }
-                })
-                .then(resp => {
+            userService.fetchUsers(roleId, subdivisionId)
+                .then(users => {
                     this.setState({
-                        users: resp.data
+                        users: users
                     });
-                });
+                })
         }
     }
 
     fetchDayCalendar(monthId, roleId, subdivisionId, dayNumber) {
-        console.log("asdaaaa", monthId, roleId, subdivisionId, dayNumber);
         if (this.isDataSelected(monthId, roleId, subdivisionId, dayNumber)) {
-            console.log("asd");
             calendarService
                 .fetchDailyCalendar(monthId, roleId, subdivisionId, dayNumber)
                 .then(dayShifts => {
@@ -209,8 +233,16 @@ class SummaryCalendar extends Component {
         });
     }
 
+    onUserClicked(userId) {
+        // /technician/:userId?/:roleId?/:subdivisionId?/:monthId?/
+        var roleId = this.state.selectedRoleId;
+        var subdivisionId = this.state.selectedSubdivisionId;
+        var monthId = this.state.selectedMonthId;
+        this.props.history.push(`/technician/${userId}/${roleId}/${subdivisionId}/${monthId}`);
+    }
+
     onCellClicked(userId, shiftId) {
-        if (this.isEditable()) {
+        if (false && this.isEditable()) {
             var dayCalendarShifts = JSON.parse(
                 JSON.stringify(this.state.dayCalendarShifts)
             );
@@ -250,21 +282,44 @@ class SummaryCalendar extends Component {
     }
 
     onSave() {
-        var {
-            dayCalendarShifts,
-            selectedMonthId,
-            selectedRoleId,
-            selectedDate
-        } = this.state;
-        calendarService.saveDailyCalendar(
-            dayCalendarShifts,
-            selectedMonthId,
-            selectedRoleId,
-            selectedDate.getDate()
-        );
+        if (this.isEditable()) {
+            var {
+                dayCalendarShifts,
+                selectedMonthId,
+                selectedRoleId,
+                selectedDate
+            } = this.state;
+            calendarService.saveDailyCalendar(
+                dayCalendarShifts,
+                selectedMonthId,
+                selectedRoleId,
+                selectedDate.getDate()
+            ).catch(err => {
+
+            });
+        }
     }
 
-    onConfirm() {}
+    onConfirm() {
+        if (this.isEditable()) {
+            var {
+                dayCalendarShifts,
+                selectedMonthId,
+                selectedRoleId,
+                selectedDate
+            } = this.state;
+            calendarService.confirmDailyCalendar(
+                dayCalendarShifts,
+                selectedMonthId,
+                selectedRoleId,
+                selectedDate.getDate()
+            );
+        }
+    }
+
+    onChange() {
+        //TODO
+    }
 
     isDataSelectedForUserQuery(roleId, subdivisionId) {
         return (
@@ -290,7 +345,7 @@ class SummaryCalendar extends Component {
     }
 
     isEditable() {
-        return calendarService.isEditable(
+        return false && calendarService.isEditable(
             this.state.currentMonthPhase,
             authService.getUserRoleId()
         );
@@ -310,24 +365,26 @@ class SummaryCalendar extends Component {
         }
 
         if (this.areResultsEmpty()) {
-            return <Alert variant="warning">{l.noResults}</Alert>;
+            return <Alert variant="warning">{l.noTechnicians}</Alert>;
         }
 
         switch (this.state.currentMonthPhase) {
             case "current":
                 return (
-                    <Alert variant="info">Edytujesz biezacy kalendarz</Alert>
+                    <Alert variant="info">
+                        {l.alertEditingCurrentCalendar}
+                    </Alert>
                 );
             case "past":
                 return (
                     <Alert variant="warning">
-                        Nie mozna edytowac kalendarza z przeszlosci
+                        {l.alertCannotEditPastCalendar}
                     </Alert>
                 );
             case "reservations":
                 return (
                     <Alert variant="info">
-                        Przeglądasz kalendarz rezerwacji
+                        {l.alertDisplayingReservationCalendar}
                     </Alert>
                 );
         }
@@ -346,7 +403,6 @@ class SummaryCalendar extends Component {
         var ojb = Object.values(this.state.shifts).filter(
             s => s.role_id == role
         );
-        console.log(ojb);
         return ojb;
     }
 
@@ -412,12 +468,12 @@ class SummaryCalendar extends Component {
                                 <Button variant="primary" onClick={this.onSave}>
                                     <i className="fas fa-save"></i>Zapisz
                                 </Button>
-                                <Button
+                                {/* <Button
                                     variant="warning"
                                     onClick={this.onReset}
                                 >
                                     <i className="fas fa-sync"></i>Przywróć
-                                </Button>
+                                </Button> */}
                                 <Button
                                     variant="success"
                                     onClick={this.onConfirm}
@@ -472,7 +528,11 @@ class SummaryCalendar extends Component {
                                         {};
                                     return (
                                         <tr key={"user-entry-" + user_id}>
-                                            <td key="0">
+                                            <td key="0" onClick={() => {
+                                                this.onUserClicked(
+                                                    user_id
+                                                )
+                                            }}>
                                                 {first_name} {last_name}(
                                                 {username_csr})
                                             </td>
@@ -532,4 +592,4 @@ class SummaryCalendar extends Component {
     }
 }
 
-export default SummaryCalendar;
+export default withRouter(SummaryDailyCalendar);

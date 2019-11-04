@@ -1,0 +1,46 @@
+main {
+    &.main-view {
+        &.technician {
+            .selectors {
+                display: flex;
+                flex-flow: wrap;
+                align-items: flex-end;
+                .form-group {
+                    margin-right: 1rem;
+                }
+            }
+
+            table.technician {
+                td {
+                    position: relative;
+                    .summary {
+                        width: 12px;
+                        height: 12px;
+                        position: absolute;
+                        bottom: 0;
+                        right: 0;
+                        font-size: 0.7rem;
+                    }
+                }
+                &.reservations {
+                    td {
+                        &.editable,
+                        &.approval-added,
+                        &.approval-removed,
+                        &.approved-added,
+                        &.approved-removed,
+                        &.current-added,
+                        &.current-removed {
+                            background-color: transparent;
+                        }
+                    }
+                }
+            }
+
+            .alert {
+                margin-bottom: 1rem;
+                margin-right: 0;
+            }
+        }
+    }
+}

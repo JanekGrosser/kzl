@@ -1,12 +1,11 @@
 import axios from "axios";
 import statusService from "./statusService";
+import shiftService from "./shiftService";
 
 // TODO
 class CalendarService {
-
-
     fetchDailyCalendar(monthId, roleId, subdivisionId, dayNumber) {
-        var promise = new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             axios
                 .get(`/data/day-calendar/${subdivisionId}`, {
                     params: {
@@ -19,20 +18,96 @@ class CalendarService {
                     resolve(resp.data);
                 })
                 .catch(err => {
+                    // TODO add better error handling with response codes and messages
                     console.error(err);
-                    reject();
+                    reject(err);
                 });
         });
+    }
 
-        return promise;
+    fetchMonthSummary(roleId, subdivisionId, monthId) {
+        return new Promise((resolve,reject) => {
+            axios.get("/data/shifts-count/",{
+                params: {
+                    role_id: roleId,
+                    subdivision_id: subdivisionId,
+                    month_id: monthId
+                }
+            })
+            .then((resp) => {
+                resolve(this.convertSummaryResponse(resp.data))
+            })
+            .catch(err => {
+                reject(err);
+            })
+        });
+    }
+
+    fetchMonthlyCalendar(monthId, userId, shifts) {
+        return new Promise((resolve, reject) => {
+            axios
+                .get(`/data/users-calendars/${userId}`, {
+                    params: {
+                        month_id: monthId
+                    }
+                })
+                .then(resp => {
+                    resolve(shiftService.parseShiftsResp(shifts, resp.data.shifts));
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject(err);
+                });
+        });
     }
 
     /**
-     * Converts daily calendar in form of
-     * @param {} dailyCalendar
+     * Converts calendar in form of and saves it
+     * @param {} calendar
      */
-    saveMonthlyCalendar(dailyCalendar) {}
+    saveMonthlyCalendar(calendar, userId, monthId) {
+        return new Promise((resolve, reject) => {
+            axios.post(`/data/users-calendars/${userId}`, shiftService.toShiftRequestFormat(calendar,monthId, userId), {
+                params: {
+                    month_id: monthId
+                }
+            })
+            .then(resp => {
+                resolve(resp.data);
+            })
+            .catch(err => {
+                reject(err);
+            })
+        })
+    }
 
+    // /**
+    //  * Converts calendar in form of and saves it
+    //  * @param {} calendar
+    //  */
+    // saveCurrentCalendar(calendar, userId, monthId) {
+    //     return new Promise((resolve, reject) => {
+    //         axios.post(`/data/current-calendar/${userId}`, shiftService.toShiftRequestFormat(calendar), {
+    //             params: {
+    //                 month_id: monthId
+    //             }
+    //         })
+    //         .then(resp => {
+    //             resolve(resp.data);
+    //         })
+    //         .catch(err => {
+    //             reject(err);
+    //         })
+    //     })
+    // }
+
+    /**
+     * Saves 'as-is' daily calendar to the backend
+     * @param {} dayCalendar
+     * @param {*} monthId
+     * @param {*} roleId
+     * @param {*} dayNumber
+     */
     saveDailyCalendar(dayCalendar, monthId, roleId, dayNumber) {
         var promise = new Promise((resolve, reject) => {
             axios
@@ -54,7 +129,6 @@ class CalendarService {
                     }
                 )
                 .then(resp => {
-                    console.log(resp);
                     resolve();
                 })
                 .catch(err => {
@@ -66,27 +140,60 @@ class CalendarService {
         return promise;
     }
 
+    //TODO wont be used for now
     confirmDailyCalendar(dayCalendar, monthId, roleId, dayNumber, monthPhase) {
-
+        var tempDayCalendar = JSON.parse(JSON.stringify(dayCalendar));
+        Object.keys(tempDayCalendar).forEach(userId => {
+            Object.keys(tempDayCalendar[userId]).forEach(shiftId => {
+                tempDayCalendar[userId][
+                    shiftId
+                ] = statusService.shiftStatusIdOnConfirm(
+                    monthPhase,
+                    tempDayCalendar[userId][shiftId]
+                );
+            });
+        });
+        //reverseConvertDailyCalendarShiftsToDailyCalendarObject
     }
 
     isEditable(monthPhase, userRoleId) {
-        console.log(monthPhase, userRoleId);
         switch (userRoleId) {
             case 1:
                 return true;
             case 2:
             case 3:
-                return monthPhase === "reservations"
+                return monthPhase === "reservations";
             case 4:
                 return false;
             case 5:
-                return monthPhase === "current" || 
-                    monthPhase === "approval" || 
-                    monthPhase === "approved"
+                return (
+                    monthPhase === "current" ||
+                    monthPhase === "approval"
+                );
             default:
-                return false
+                return false;
         }
+    }
+
+    /**
+     * Returns object 
+     * {
+     *  <shift_1>: {
+     *      <day_1>
+     *      ...
+     *  }
+     *  ...
+     * }
+     * @param {*} summary 
+     */
+    convertSummaryResponse(summary) {
+        var converted = {};
+        summary.forEach(s => {
+            if (!converted[s.shift_id])
+                converted[s.shift_id] = {};
+            converted[s.shift_id][s.day_number] = s.shifts_count
+        })
+        return converted;
     }
 
     /**

@@ -2,21 +2,6 @@ import lang from "../common/lang";
 
 var l = lang();
 
-/**
- * Month phases
- * 2 - approval
- * 3 - approved/Review
- * 4 - current
- */
-
- /**
-  * 			
-STATUS		AKCJA(KLIK)	
-approval	2	approval-removed	7
-<null>	null	approval-added	6
-approval-added	6	<null>	<null>
-approval-removed	7	approval	2
-  */
 class StatusService {
 
     getCountableStatuses() {
@@ -24,35 +9,35 @@ class StatusService {
     }
 
     shiftStatusId(monthStatus, currentStatusId) {
+        
         switch(monthStatus) {
             case "approval":
                 switch(currentStatusId) {
                     case(2):
                         return 4;
                     case(3):
-                        return undefined;
+                        return 0;
                     case(4):
                         return 2;
-                    case undefined:
+                    default:
                         return 3; 
                 }
             case "current":
-                //switch()
                 switch(currentStatusId) {
                     case 8:
-                        return undefined;
+                        return 0;
                     case 5:
                         return 9;
                     case 9:
                         return 5;
-                    case undefined:
+                    default:
                         return 8;
                 }
             case "reservations":
                 switch(currentStatusId) {
                     case 1:
-                        return undefined;
-                    case undefined:
+                        return 0;
+                    default:
                         return 1;
                 }
             case "past":
@@ -73,7 +58,7 @@ class StatusService {
     getStatusIdsForPhase(phase) {
         switch (phase) {
             case "past":
-                return [0]
+                return [-1]
             case "reservations":
                 return [2];
             case "approval":
@@ -87,8 +72,35 @@ class StatusService {
         }
     }
 
-    getStatusAfterConfirm(monthStatus, statusId) {
-
+    /**
+     * status 0 for soft-delete
+     * @param {*} monthStatus 
+     * @param {*} currentStatusId 
+     */
+    shiftStatusIdOnConfirm(monthStatus, currentStatusId) {
+        switch(monthStatus) {
+            case "approval":
+                switch(currentStatusId) {
+                    case(2):
+                        return 5;
+                    case(3):
+                        return 3;
+                    case(4):
+                        return 4;
+                    default:
+                        return 0;
+                }
+            case "reservations":
+                switch(currentStatusId) {
+                    case 1:
+                        return 2;
+                    default:
+                        return 0;
+                }
+            default:
+                console.error("NOT FOUND");
+                return 0;
+        }
     }
     
     getAllStatusIds() {
@@ -105,8 +117,6 @@ class StatusService {
      */
     getClassForStatusId(statusId) {
         switch (statusId) {
-            case 0:
-                return "past";
             case 1:
                 return "editable";
             case 2:
@@ -125,6 +135,8 @@ class StatusService {
                 return "current-added";
             case 9:
                 return "current-removed";
+            case -1:
+                return "past"
             default:
                 return "";
         }
@@ -152,7 +164,7 @@ class StatusService {
             currentShifts[shift_id] &&
             currentShifts[shift_id][day_number]
             ? currentShifts[shift_id][day_number].status_id
-            : "";
+            : undefined;
     }
 };
 

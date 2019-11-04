@@ -1,0 +1,41 @@
+main {
+    &.main-view {
+        &.booking {
+            .selectors {
+                display: flex;
+                flex-flow: wrap;
+                align-items: flex-end;
+                .form-group {
+                    margin-right: 1rem;
+                }
+            }
+            table.booking {
+                td {
+                    background-color: transparent;
+                    &:hover {
+                        background-color: rgba(0, 0, 0, 0.3);
+                    }
+                    &.approval {
+                        background-color: $info-background;
+                        i {
+                            color: $info-text;
+                            &.default {
+                                display: inline;
+                            }
+                        }
+                    }
+                    &.editable {
+                        background-color: $primary-background;
+                        i {
+                            color: $primary-text;
+                            &.default {
+                                display: inline;
+                            }
+                        }
+                    }
+                    
+                }
+            }
+        }
+    }
+}
