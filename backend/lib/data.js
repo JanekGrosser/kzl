@@ -27,7 +27,7 @@ exports.getShiftsCount = async (req, res) =>{
             .whereNotIn("status_id", [0,1,4,7,9])
             .groupBy("day_number", "shift_id")
             .orderBy("day_number", "shift_id");
-        res.status(200).json(count);
+        return res.status(200).json(count);
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);
