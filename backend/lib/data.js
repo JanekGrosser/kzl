@@ -24,7 +24,7 @@ exports.getShiftsCount = async (req, res) =>{
             .select("day_number", "shift_id")
             .where("user_subdivisions", "like", "%" + subdivisionId+"%")
             .andWhere({ month_id: monthId, role_id: roleId})
-            .whereNotIn("status_id", [1,4,7,9])
+            .whereNotIn("status_id", [0,1,4,7,9])
             .groupBy("day_number", "shift_id")
             .orderBy("day_number", "shift_id");
         res.status(200).json(count);
