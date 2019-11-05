@@ -5,6 +5,10 @@ import shiftService from "../../services/shiftService";
 import statusService from "../../services/statusService";
 import { Table, Alert, Form, Button, ButtonToolbar } from "react-bootstrap";
 import util from "../../util";
+import lang from "../../common/lang";
+import Legend from "../Legend";
+
+var l = lang();
 
 /**
  * ID Helper
@@ -154,7 +158,8 @@ class BookingCalendar extends Component {
                 this.setState({
                     currentShifts: shiftService.parseShiftsResp(
                         this.state.shifts,
-                        approvalShifts
+                        approvalShifts,
+                        authService.getLoggedInUserId()
                     ),
                     calendarInApproval: true
                 });
@@ -171,24 +176,14 @@ class BookingCalendar extends Component {
                 }
             })
             .then(res => {
+                var calendarInApproval = false;
+                var found = res.data.shifts.find(s => s.status_id === 2);
+                if (found) calendarInApproval = true;
                 var currentShifts = shiftService.parseShiftsResp(
                     this.state.shifts,
-                    res.data.shifts
+                    res.data.shifts,
+                    authService.getLoggedInUserId()
                 );
-
-                var calendarInApproval = false;
-
-                var sampleShift = Object.keys(currentShifts).pop();
-                if (sampleShift) {
-                    var sampleDay = Object.keys(
-                        currentShifts[sampleShift]
-                    ).pop();
-                    if (sampleDay) {
-                        calendarInApproval =
-                            currentShifts[sampleShift][sampleDay].status_id ===
-                            2;
-                    }
-                }
 
                 this.setState({
                     currentShifts,
@@ -201,67 +196,56 @@ class BookingCalendar extends Component {
     render() {
         return (
             <>
-                <h2>Kalendarz rezerwacji grafiku</h2>
-                <h4>Bartosz Grabski (GRA)</h4>
-                <Form.Group className={"calendar-select"}>
-                    <Form.Label>Wybrany miesiąc</Form.Label>
-                    <Form.Control
-                        as="select"
-                        name="selected_month"
-                        onChange={this.onMonthSelected}
-                        value={this.state.selectedMonthId}
-                    >
-                        <option disabled key={0} value={-1}>
-                            Wybierz miesiąc
-                        </option>
-                        {this.state.months.map((month, el) => (
-                            <option key={el + 1} value={month.month_id}>
-                                {month.year_month}
+                <h2>{l.bookingCalendar}</h2>
+                <h4>
+                    {authService.getUsername()} - ({authService.getUserCSR()})
+                </h4>
+                <div className="selectors">
+                    <Form.Group>
+                        <Form.Label>{l.month}</Form.Label>
+                        <Form.Control
+                            as="select"
+                            name="selected_month"
+                            onChange={this.onMonthSelected}
+                            value={this.state.selectedMonthId}
+                        >
+                            <option disabled key={0} value={-1}>
+                                Wybierz miesiąc
                             </option>
-                        ))}
-                    </Form.Control>
-                    <Alert
-                        show={this.state.calendarInApproval}
-                        variant={"info"}
-                    >
-                        Wybrany kalendarz został wysłany do zatwierdzenia!
-                    </Alert>
-                    {this.state.selectedMonthId !== -1 &&
-                    !this.state.calendarInApproval ? (
-                        <ButtonToolbar>
-                            <Button variant="primary" onClick={this.onSave}>
-                                <i className="fas fa-save"></i>Zapisz
-                            </Button>
-                            <Button
-                                variant="success"
-                                onClick={this.onSendForApproval}
-                            >
-                                <i
-                                    className="fa fa-paper-plane"
-                                    aria-hidden="true"
-                                ></i>
-                                Wyślij do zatwierdzenia
-                            </Button>
-                        </ButtonToolbar>
-                    ) : (
-                        ""
-                    )}
-                </Form.Group>
+                            {this.state.months.map((month, el) => (
+                                <option key={el + 1} value={month.month_id}>
+                                    {month.year_month}
+                                </option>
+                            ))}
+                        </Form.Control>
+                        {this.state.selectedMonthId !== -1 &&
+                        !this.state.calendarInApproval ? (
+                            <ButtonToolbar>
+                                <Button variant="primary" onClick={this.onSave}>
+                                    <i className="fas fa-save"></i>Zapisz
+                                </Button>
+                                <Button
+                                    variant="success"
+                                    onClick={this.onSendForApproval}
+                                >
+                                    <i
+                                        className="fa fa-paper-plane"
+                                        aria-hidden="true"
+                                    ></i>
+                                    Wyślij do zatwierdzenia
+                                </Button>
+                            </ButtonToolbar>
+                        ) : (
+                            ""
+                        )}
+                    </Form.Group>
+                </div>
+                <Alert show={this.state.calendarInApproval} variant={"info"}>
+                    Wybrany kalendarz został wysłany do zatwierdzenia!
+                </Alert>
                 {this.state.selectedMonthId !== -1 ? (
                     <>
-                        <ul className="legenda">
-                            {!this.state.calendarInApproval ? (
-                                <li>
-                                    <i className="fas fa-stop text-primary"></i>{" "}
-                                    - Termin wybrany
-                                </li>
-                            ) : (
-                                <li>
-                                    <i className="fas fa-stop text-info"></i> -
-                                    Termin wysłany do zatwierdzenia
-                                </li>
-                            )}
-                        </ul>
+                        <Legend ids={statusService.getStatusIdsForPhase("reservations", authService.getUserRoleId())}></Legend>
                         <Table
                             className={
                                 "booking " +
@@ -304,7 +288,8 @@ class BookingCalendar extends Component {
                                                         statusService.getStatusIdFromCurrentShifts(
                                                             shift.shift_id,
                                                             day.day_number,
-                                                            this.state.currentShifts
+                                                            this.state
+                                                                .currentShifts
                                                         )
                                                     )}
                                                     onClick={() =>

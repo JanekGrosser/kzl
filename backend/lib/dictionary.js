@@ -125,7 +125,7 @@ exports.getMonthsPhase = async (req, res) => {
             let now = new Date();
             //Set helper dates, fun fun fun
             let requestedStart = dateFns.parseISO(requestedYearMonth + "01");           //console.log(requestedStart+" rs");
-            let currentMonthStart = dateFns.addHours(dateFns.startOfMonth(now), 0) ;    //console.log(currentMonthStart+" cms");
+            let currentMonthStart = dateFns.addHours(dateFns.startOfMonth(now), 0);    //console.log(currentMonthStart+" cms");
             let currentMonth15th = dateFns.addDays(currentMonthStart, 14);              //console.log(currentMonth15th + " c15th");
             let currentMonth20th = dateFns.addDays(currentMonthStart, 19);              //console.log(currentMonth20th + " c20th");            
             let currentPlusSixMonths = dateFns.addMonths(currentMonthStart, 6);         //console.log(currentPlusSixMonths + " c+6");

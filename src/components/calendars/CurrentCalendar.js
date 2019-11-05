@@ -3,6 +3,7 @@ import axios from "axios";
 import authService from "../../services/authService";
 import shiftService from "../../services/shiftService";
 import statusService from "../../services/statusService";
+import Legend from "../Legend";
 import { Table } from "react-bootstrap";
 import util from "../../util";
 import lang from "../../common/lang";
@@ -37,7 +38,8 @@ class CurrentCalendar extends Component {
                         console.log(calendarResp.data);
                         var parsedShifts = shiftService.parseShiftsResp(
                             shiftsResp.data,
-                            calendarResp.data
+                            calendarResp.data,
+                            authService.getLoggedInUserId()
                         );
                         this.setState({
                             statuses: statusResp.data,
@@ -91,16 +93,9 @@ class CurrentCalendar extends Component {
                 <h3>
                     {l.month} - {this.state.currentMonth}
                 </h3>
-                <ul className="legenda">
-                    <li>
-                        <i className="fas fa-stop text-success"></i> - Termin
-                        zaakceptowany
-                    </li>
-                    <li>
-                        <i className="fas fa-stop text-warning"></i> - Termin
-                        zmieniony
-                    </li>
-                </ul>
+                <Legend
+                    ids={statusService.getStatusIdsForPhase("current")}
+                ></Legend>
                 <Table className={"current"} bordered responsive>
                     <thead className={"thead-dark"}>
                         <tr>

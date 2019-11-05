@@ -1,0 +1,24 @@
+main {
+    &.main-view {
+        table.current {
+            tr {
+                /**
+                * All other statuses should not be displayed in this table
+                */
+                td {
+                    &:hover {
+                        cursor: initial;
+                    }
+                    &.editable,
+                    &.approval,
+                    &.approval-added,
+                    &.approval-removed,
+                    &.approved-added,
+                    &.approved-removed {
+                        background-color: transparent;
+                    }
+                }
+            }
+        }
+    }
+}

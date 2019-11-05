@@ -4,11 +4,12 @@ import authService from "../services/authService";
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import axios from "axios";
-import { Route } from "react-router-dom";
+import { Route, Redirect } from "react-router-dom";
 import UsersComponent from "../components/UsersComponent";
 import CurrentCalendar from "../components/calendars/CurrentCalendar";
 import BookingCalendar from "../components/calendars/BookingCalendar";
-import SummaryCalendar from "../components/calendars/SummaryCalendar";
+import SummaryDailyCalendar from "../components/calendars/SummaryDailyCalendar";
+import TechnicianCalendar from "../components/calendars/TechnicianCalendar";
 
 class LoggedInView extends Component {
 
@@ -105,13 +106,17 @@ class LoggedInView extends Component {
                         { authService.isPriviligedRole() ? <UsersComponent pageSize={10} {...this.state} onUserChange={this.onUserChange} onUserDelete={this.onUserDelete} ></UsersComponent> : "" }
                     </Route>
                     <Route exact path="/">
-                        { authService.isRegularRole() ? <CurrentCalendar/> : ""}
+                        { authService.isRegularRole() ? <CurrentCalendar/> 
+                        : authService.isPriviligedRole() ? <Redirect to="/technician"/> : ""}
                     </Route>
                     <Route exact path="/booking">
                         { authService.isRegularRole() ? <BookingCalendar/> : ""}
                     </Route>
-                    <Route exact path="/summary-daily/:dayNumber?/:monthId?">
-                        { authService.isPriviligedRole() ? <SummaryCalendar/> : ""}
+                    <Route exact path="/summary-daily/:roleId?/:subdivisionId?/:dayNumber?/:monthId?/">
+                        { authService.isPriviligedRole() ? <SummaryDailyCalendar/> : ""}
+                    </Route>
+                    <Route exact path="/technician/:userId?/:roleId?/:subdivisionId?/:monthId?/">
+                        { authService.isPriviligedRole() ? <TechnicianCalendar/> : ""}
                     </Route>
                     
                 </main>

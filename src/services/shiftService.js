@@ -18,9 +18,7 @@ class ShiftService {
      */
     parseShiftsResp(shifts, currentShifts) {
         var parsed = {};
-
         shifts
-            .filter(shift => shift.role_id === authService.getUserRoleId())
             .forEach(shift => {
                 var a = shift;
                 if (!parsed[shift.shift_id]) parsed[shift.shift_id] = {};
@@ -70,7 +68,6 @@ class ShiftService {
      * @returns {object} { <shift_id>: <count> }
      */
     getDayCalendarSummary(dayCalendar, possibleShiftsObject) {
-        console.log(possibleShiftsObject);
         var obj = possibleShiftsObject.reduce((acc,shift) => {
             acc[shift.shift_id] = 0
             return acc;
