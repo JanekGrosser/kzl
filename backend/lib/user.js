@@ -93,14 +93,41 @@ exports.listAllSubdivision = async (req, res) => {
 
 /**
  * @async - get users list based on subdivision and role
- * @returns {object} res object
+ * @returns {object} res object and data
  * @todo make to accept more diffremt query params
  * @param {number} req.params.subdivision_id
  * @param {number} req.query.role_id
+ * @param {number} req.query.month_id - optional to get users ordered by sent to aproval date in requested month
  */
 exports.usersQueriedList = async (req, res) => {
     try {
-        if (req.params.subdivision_id && req.query.role_id) {
+        if (req.params.subdivision_id && req.query.role_id && req.query.month_id){
+            let subdivisionId = req.params.subdivision_id;
+            let roleId = req.query.role_id;
+            let monthId = req.query.month_id
+            let users = await knex("users_approval_view")
+                .select(
+                    "user_id",
+                    "username_csr",
+                    "first_name",
+                    "last_name",
+                    "phone_num",
+                    "user_subdivisions",
+                    "role",
+                    "role_id",
+                    "active",
+                    "month_id",
+                    "sent_at")
+                .where({ role_id: roleId })
+                .andWhere(function(){
+                    this.where({ month_id: monthId }).orWhereNull("month_id")
+                })
+                .andWhere("user_subdivisions", "like", "%" + subdivisionId + "%")
+                .orderBy([{column: "sent_at", order: "desc"}, {column: "username_csr", order: "asc"}]);
+            return res.status(200).json(users);
+        }
+
+        else if (req.params.subdivision_id && req.query.role_id) {
             let subdivisionId = req.params.subdivision_id;
             let roleId = req.query.role_id;
             let users = await knex("users_view")
@@ -117,9 +144,9 @@ exports.usersQueriedList = async (req, res) => {
                 .where({role_id: roleId})
                 .andWhere("user_subdivisions", "like", "%" + subdivisionId + "%")
                 .orderBy("user_id");
-            res.status(200).json(users);
+            return res.status(200).json(users);
         } else {
-            res.status(400).json({error: "check query params"})
+            return res.status(400).json({error: "check query params"})
         };
     } catch (error) {
         console.log(error);
