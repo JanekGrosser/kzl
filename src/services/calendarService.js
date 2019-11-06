@@ -63,6 +63,31 @@ class CalendarService {
         });
     }
 
+    saveMonthlyCalendarApproval(calendar, userId, monthId) {
+        return new Promise((resolve, reject) => {
+            axios
+                .post(
+                    `/data/users-calendars/approval-phase/${userId}`,
+                    shiftService.toShiftRequestFormat(
+                        calendar,
+                        monthId,
+                        userId
+                    ),
+                    {
+                        params: {
+                            month_id: monthId
+                        }
+                    }
+                )
+                .then(resp => {
+                    resolve(resp.data);
+                })
+                .catch(err => {
+                    reject(err);
+                });
+        });
+    }
+
     /**
      * Converts calendar in form of and saves it
      * @param {} calendar
@@ -105,7 +130,7 @@ class CalendarService {
         return new Promise((resolve, reject) => {
             axios
                 .post(
-                    `/data/users-calendars/${userId}`,
+                    `/data/users-calendars/approval-phase/${userId}`,
                     { shifts },
                     {
                         params: {

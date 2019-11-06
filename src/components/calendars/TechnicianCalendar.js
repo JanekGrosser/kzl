@@ -365,7 +365,7 @@ class TechnicianCalendar extends Component {
 
     onSaveApproval() {
         var calendar = JSON.parse(JSON.stringify(this.state.calendar));
-        calendarService.saveMonthlyCalendar(calendar, this.state.selectedUserId, this.state.selectedMonthId)
+        calendarService.saveMonthlyCalendarApproval(calendar, this.state.selectedUserId, this.state.selectedMonthId)
             .then(cal => {
                 this.fetchSummary(this.state.selectedRoleId, this.state.selectedSubdivisionId, this.state.selectedMonthId);
             });
