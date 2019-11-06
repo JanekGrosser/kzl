@@ -44,14 +44,14 @@ class Buttons extends Component {
                             <>
                                 <Button
                                     variant="primary"
-                                    onClick={this.props.onSave}
+                                    onClick={this.props.onSaveApproval}
                                 >
                                     <i className="fas fa-save"></i>
                                     {l.save}
                                 </Button>
                                 <Button
                                     variant="success"
-                                    onClick={this.props.onConfirm}
+                                    onClick={this.props.onConfirmApproval}
                                 >
                                     <i className="fas fa-sync"></i>
                                     {l.confirm}

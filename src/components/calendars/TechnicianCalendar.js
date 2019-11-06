@@ -483,7 +483,6 @@ class TechnicianCalendar extends Component {
                     onSaveApproval={this.onSaveApproval}
                     onConfirmApproval={this.onConfirmApproval}
                     onChangeCurrent={this.onChangeCurrent}
-                    onSaveCurrent={this.onSaveCurrent}
                     onReset={this.onReset}
                 />
                 {this.getAlertIfNeeded()}
