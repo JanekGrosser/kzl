@@ -124,7 +124,7 @@ class CalendarService {
             userId
         );
         shifts.map(shift => {
-            shift.status_id = shiftService.shiftStatusIdOnConfirm(selectedMonthPhase,shift.status_id)
+            shift.status_id = statusService.shiftStatusIdOnConfirm(selectedMonthPhase,shift.status_id)
             return shift;
         })
         return new Promise((resolve, reject) => {
