@@ -27,6 +27,7 @@ router.get("/months", middleware.checkJwt, dictionariesController.getMonthsDicti
 router.get("/current-month", middleware.checkJwt, dictionariesController.getCurrentMonth);
 router.get("/following-months", middleware.checkJwt, dictionariesController.getFollowingMonths);
 router.get("/months-phase", middleware.checkJwt, dictionariesController.getMonthsPhase);
+router.get("/calendar-phase", middleware.checkJwt, dictionariesController.getCalendarPhase);
 
 
 module.exports = router;

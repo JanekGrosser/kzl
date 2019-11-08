@@ -1,10 +1,6 @@
-
 "use-strict";
-const dateFns = require("date-fns");
 const knex = require("../config/knex");
 const general = require("./general");
-//####DICTIONARY TABLES API####
-//TODO move to separate file
 
 exports.getSubdivisionsDictionary = async (req, res) => {
     try {
@@ -110,53 +106,57 @@ exports.getMonthsPhase = async (req, res) => {
         let monthId = req.query.month_id;
         let month = await knex("months").first().where({month_id: monthId});
         if (!month) return res.status(404).json({error: "Month id not found"});
-        //declare an object to store phase value
-        
-        /**
-         * @function
-         * @param {string} requestedYearMonth
-         * @returns - requested month phase
-         * @todo make separate columns for month and year in datbase months table
-         * @todo aync if needed
-         */
-        function monthInPhase (requestedYearMonth) {
-            let monthPhase = {};
-            //Get current date
-            let now = new Date();
-            //Set helper dates, fun fun fun
-            let requestedStart = dateFns.parseISO(requestedYearMonth + "01");           //console.log(requestedStart+" rs");
-            let currentMonthStart = dateFns.addHours(dateFns.startOfMonth(now), 0);    //console.log(currentMonthStart+" cms");
-            let currentMonth15th = dateFns.addDays(currentMonthStart, 14);              //console.log(currentMonth15th + " c15th");
-            let currentMonth20th = dateFns.addDays(currentMonthStart, 19);              //console.log(currentMonth20th + " c20th");            
-            let currentPlusSixMonths = dateFns.addMonths(currentMonthStart, 6);         //console.log(currentPlusSixMonths + " c+6");
-            let currentPlusFiveMonths = dateFns.addMonths(currentMonthStart, 5);        //console.log(currentPlusFiveMonths + " c+5");
-            let currentPlusOneMonth = dateFns.addMonths(currentMonthStart, 1);          //console.log(currentPlusOneMonth +" c+1");
-            //more fun
-            if (dateFns.isSameMonth(requestedStart, currentMonthStart)) {
-                monthPhase.phase = "current";
-            } else if (dateFns.isBefore(requestedStart, currentMonthStart)) {
-                monthPhase.phase = "past";
-            } else if (dateFns.isSameMonth(requestedStart, currentPlusOneMonth)) {
-                if (dateFns.isWithinInterval (now, {start: currentMonthStart, end: currentMonth15th})) {
-                    monthPhase.phase = "reservations";
-                } else if ((dateFns.isAfter(now, currentMonth15th))&&(dateFns.isBefore(now, currentMonth20th))) {
-                    monthPhase.phase = "approval";
-                } else if ((dateFns.isAfter(now, currentMonth20th))&&(dateFns.isBefore(now, currentPlusOneMonth))) {
-                    monthPhase.phase = "approved"
-                } else {
-                    throw Error("Unexpected date parsing error");
-                };
-            } else if ((dateFns.isAfter(requestedStart, currentPlusOneMonth)) && (dateFns.isBefore(requestedStart, currentPlusSixMonths))) {
-                monthPhase.phase = "reservations"  //change else if to in range
-            } else if (dateFns.isAfter(requestedStart, currentPlusFiveMonths)) {
-                monthPhase.phase = "notAvaible"
-            } else {
-                throw Error("Unexpected date parsing error");
-            };
-            // console.log(monthPhase.phase)
-            return monthPhase;
+        return res.status(200).json(general.monthInPhase(month.year_month));
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    };
+};
+
+
+/**
+ * @async Function returns requested months current phase for specific user/ TODO users subdivision
+ * @returns {object} res - response object
+ * Phases:
+ *  1 - Reservations
+ *  2 - Approval
+ *  3 - Approved/Review
+ *  4 - Current
+ *  5 - Past
+ *  6 - Not avaible
+ * @param {object} req - Request object
+ * @param {object} req.query Request query
+ * @param {number} req.query.month_id - requested month id
+ * @param {number} req.query.user_id - requested month id
+ * @param {number} req.query.subdivision_id - requested month id
+ */
+exports.getCalendarPhase = async (req, res) => {
+    try {
+        if (!(req.query.month_id) && (req.query.user_id) && (req.query.subdivision_id)) return res.status(400).json({ error: "Check query param" })
+        let monthId = req.query.month_id;
+        let userId = req.query.user_id;
+        let subdivisionId = req.query.subdivision_id;
+        let month = await knex("months").first().where({ month_id: monthId });
+        if (!month) return res.status(404).json({ error: "Month id not found" });
+        let monthStatus = general.monthInPhase(month.year_month);
+        let shifts = await knex("division_shifts_view")
+            .select("status_id")
+            .where({ user_id: userId, month_id: monthId})
+            .andWhere("user_subdivisions", "like", "%" + subdivisionId + "%");
+        let approvalStatus = shifts.filter(shift=>{
+            return (shift.status_id == 2);
+        });
+        let approvedStatus = shifts.filter(shift=>{
+            return (shift.status_id == 5 || shift.status_id == 6 || shift.status_id == 7);
+        });
+        if ((approvalStatus.length > 0) && (approvedStatus.length > 0)) console.log("WARNING: Both approval and approved status present");
+        if ((monthStatus.phase === "reservations") && (approvalStatus.length>0)) {
+            return res.status(200).json({phase: "approval"});
+        } else if ((monthStatus.phase === "approval") && (approvedStatus.length>0)) {
+            return res.status(200).json({ phase: "approved" });
+        } else {
+            return res.status(200).json(monthStatus);
         };
-        return res.status(200).json(monthInPhase(month.year_month));
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);

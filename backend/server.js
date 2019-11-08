@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const cors = require("cors");
 const PORT = 4009;
+const scheduled = require("./lib/cron");
 
 const userRoutes = require("./routes/user-routes");
 const authRoutes = require("./routes/auth-routes");
@@ -23,3 +24,4 @@ app.use("/api/data", dataRoutes);
 
 app.listen(PORT, () => { console.log(`Server running @ port ${PORT}`)});
 
+scheduled.warningUnapprovedCalendars();
