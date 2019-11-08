@@ -115,3 +115,56 @@ exports.getMonthsPhase = async (req, res) => {
         return res.sendStatus(500);
     };
 };
+
+
+/**
+ * @async Function returns requested months current phase for specific user/ TODO users subdivision
+ * @returns {object} res - response object
+ * Phases:
+ *  1 - Reservations
+ *  2 - Approval
+ *  3 - Approved/Review
+ *  4 - Current
+ *  5 - Past
+ *  6 - Not avaible
+ * @param {object} req - Request object
+ * @param {object} req.query Request query
+ * @param {number} req.query.month_id - requested month id
+ * @param {number} req.query.user_id - requested month id
+ * @param {number} req.query.subdivision_id - requested month id
+ */
+exports.getCalendarPhase = async (req, res) => {
+    try {
+        if (!(req.query.month_id) && (req.query.user_id) && (req.query.subdivision_id)) return res.status(400).json({ error: "Check query param" })
+        let monthId = req.query.month_id;
+        let userId = req.query.user_id;
+        let subdivisionId = req.query.subdivision_id;
+        let month = await knex("months").first().where({ month_id: monthId });
+        if (!month) return res.status(404).json({ error: "Month id not found" });
+        let monthStatus = general.monthInPhase(month.year_month);
+        let shifts = await knex("division_shifts_view")
+            .select("status_id")
+            .where({ user_id: userId, month_id: monthId})
+            .andWhere("user_subdivisions", "like", "%" + subdivisionId + "%");
+        console.log(shifts);
+        console.log(monthStatus);
+        let approvalStatus = shifts.filter(shift=>{
+            return (shift.status_id == 2);
+        });
+        let approvedStatus = shifts.filter(shift=>{
+            return (shift.status_id == 5 || shift.status_id == 6 || shift.status_id == 7);
+        });
+        console.log(`approval status shifts: ${approvalStatus.length}`);
+        console.log(`approved status shifts: ${approvedStatus.length}`);
+        if ((monthStatus.phase === "reservations") && (approvalStatus.length>0)) {
+            return res.status(200).json({phase: "approval"});
+        } else if ((monthStatus.phase === "approval") && (approvedStatus.length>0)) {
+            return res.status(200).json({ phase: "approved" });
+        } else {
+            return res.status(200).json(monthStatus);
+        };
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    };
+};
