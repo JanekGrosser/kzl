@@ -3,6 +3,7 @@
 //TODO check to ensure not blocking the Event Loop
 const knex = require("../config/knex");
 const general = require("./general");
+const sms = require("./sms");
 
 /**
  * @async - get shifts count for requested division, month and role
@@ -202,7 +203,7 @@ exports.saveUsersCalendars = async (req, res) => {
 
 /**
  * @async - Save calendar by KZ in approval phase
- * @returns - Api server response
+ * @returns - Api server response and sends SMS on approved statuses
  * @todo better validation
  * @param {object} req
  * @param {object} req.body
@@ -221,7 +222,8 @@ exports.saveApprovalCalendars = async (req, res) => {
         let userId = req.params.user_id;
         const { shifts } = req.body;
         let monthId = shifts[0].month_id;
-        //Start stransaction
+ 
+        //Start transaction
         let trx = await knex.transaction();
         //Delete all in range then insert new, rollback on error
         await trx("man_shifts")
@@ -234,7 +236,21 @@ exports.saveApprovalCalendars = async (req, res) => {
         await trx("man_shifts")
             .insert(shifts)
             .then(() => {
-                trx.commit();
+                trx.commit();        
+                //Check for approve and approve-added/removed status to determine if/what SMS should be sent
+                let approve = shifts.filter(shift => {
+                    return (shift.status_id == 5)
+                });
+                let changed = shifts.filter(shift => {
+                    return (shift.status_id == 6 || shift.status_id == 7)
+                });
+                console.log(`Shifts approved: ${approve.length}`);
+                console.log(`Shifts changed: ${changed.length}`);
+                if ((approve.length > 0) && (changed.length > 0)) {
+                    sms.sendSms(userId, "Zatwierdzono grafik ze zmiananmi");
+                } else if (approve.length > 0) {
+                    sms.sendSms(userId, "Zatwierdzono grafik bez zmian");
+                };      
                 return res.status(201).json({ ok: "Need something in reponse?" });
             })
             .catch((err) => {

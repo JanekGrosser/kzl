@@ -13,7 +13,7 @@ const saltRounds = 10;
 const nexmo = new Nexmo({
     apiKey: config.nexmo.apiKey,
     apiSecret: config.nexmo.apiSecret
-}, {debug: true})
+}, {debug: true});
 
 /**
  * @async Function checks if provided password matches hashed password in DB
