@@ -15,7 +15,7 @@ const sms = require("./sms");
  */
 exports.getShiftsCount = async (req, res) =>{
     try {
-        if (!(req.query.role_id && req.query.month_id && req.query.subdivision_id)) res.status(400).json({error: "check query params"})
+        if (!(req.query.role_id && req.query.month_id && req.query.subdivision_id)) return res.status(400).json({error: "check query params"})
         let roleId = req.query.role_id;
         let monthId = req.query.month_id;
         let subdivisionId = req.query.subdivision_id;

@@ -74,7 +74,7 @@ exports.login = async (req, res) => {
             user_subdivisions: user.user_subdivisions
         };
         const token = jwt.sign(jwtPayload, config.jwtSecret);
-        res.status(200).json(token);
+        return res.status(200).json(token);
     } catch(error) {
         console.log(error);
         return res.sendStatus(500);
