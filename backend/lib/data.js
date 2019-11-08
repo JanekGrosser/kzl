@@ -1,6 +1,5 @@
 "use-strict";
 //TODO unify integer/string in values when diffrent types need to be compared 
-//TODO check to ensure not blocking the Event Loop
 const knex = require("../config/knex");
 const general = require("./general");
 const sms = require("./sms");

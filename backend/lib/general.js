@@ -3,8 +3,7 @@ const dateFns = require("date-fns");
 const knex = require("../config/knex");
 
 /**
- * @function
- * @returns current yearMonth string (YYYY-M(M))
+ * @returns current yearMonth string (YYYY-MM)
  */
 exports.currentYearMonth = () => {
     let currentDate = new Date();
@@ -16,9 +15,7 @@ exports.currentYearMonth = () => {
     return dateQueryString;
 };
 
-
 /**
- * @function
  * @param {string} requestedYearMonth
  * @returns - requested month phase
  * @todo make separate columns for month and year in datbase months table

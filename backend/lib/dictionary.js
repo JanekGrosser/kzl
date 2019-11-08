@@ -1,9 +1,6 @@
-
 "use-strict";
 const knex = require("../config/knex");
 const general = require("./general");
-//####DICTIONARY TABLES API####
-//TODO move to separate file
 
 exports.getSubdivisionsDictionary = async (req, res) => {
     try {
@@ -146,16 +143,13 @@ exports.getCalendarPhase = async (req, res) => {
             .select("status_id")
             .where({ user_id: userId, month_id: monthId})
             .andWhere("user_subdivisions", "like", "%" + subdivisionId + "%");
-        console.log(shifts);
-        console.log(monthStatus);
         let approvalStatus = shifts.filter(shift=>{
             return (shift.status_id == 2);
         });
         let approvedStatus = shifts.filter(shift=>{
             return (shift.status_id == 5 || shift.status_id == 6 || shift.status_id == 7);
         });
-        console.log(`approval status shifts: ${approvalStatus.length}`);
-        console.log(`approved status shifts: ${approvedStatus.length}`);
+        if ((approvalStatus.length > 0) && (approvedStatus.length > 0)) console.log("WARNING: Both approval and approved status present");
         if ((monthStatus.phase === "reservations") && (approvalStatus.length>0)) {
             return res.status(200).json({phase: "approval"});
         } else if ((monthStatus.phase === "approval") && (approvedStatus.length>0)) {

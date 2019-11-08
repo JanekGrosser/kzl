@@ -24,4 +24,4 @@ app.use("/api/data", dataRoutes);
 
 app.listen(PORT, () => { console.log(`Server running @ port ${PORT}`)});
 
-scheduled.cronTest();
+scheduled.warningUnapprovedCalendars();
