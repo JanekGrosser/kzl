@@ -36,24 +36,28 @@ exports.getShiftsCount = async (req, res) =>{
 
 
 /**
- * @async - Get selected user shifts calendar for the current month 
+ * @async - Get selected user shifts calendar for the current month, added: subdivision
  * @returns - Api server response and requested shifts data ordered by month and shift id
+ * @todo add parameters check/validation
  * @param {object} req
  * @param {object} req.params
  * @param {number} req.params.user_id
+ * @param {object} req.query
+ * @param {number} req.query.subdivision_id
  * @param {object} res
  */
 exports.getCurrentShifts = async (req, res) => {
     try {
         let id = req.params.user_id;
+        let subdivisionId = req.query.subdivision_id;
         //Get current year and month
         let dateQueryString = general.currentYearMonth();
         //Get current months id
         let yearMonth = await knex("months").first().where({ year_month: dateQueryString });
         //Get requested shifts form db
         let shifts = await knex("man_shifts")
-            .select("shift_id", "month_id", "day_number", "status_id")
-            .where({ user_id: id })
+            .select("shift_id", "month_id", "day_number", "status_id", "subdivision_id")
+            .where({ user_id: id, subdivision_id: subdivisionId })
             .andWhere({ month_id: yearMonth.month_id})
             .orderBy([{ column: "month_id" }, { column: "shift_id" }]);
         //Send shifts as response
@@ -66,22 +70,24 @@ exports.getCurrentShifts = async (req, res) => {
 
 
 /**
- * @async - Get selected user shifts callendar for selected month
+ * @async - Get selected user shifts callendar for selected month, added subdivisions
  * @returns - Api server response and data
  * @param {object} req
  * @param {object} req.params
  * @param {object} req.params.user_id
  * @param {object} req.query
  * @param {object} req.query.month_id
+ * @param {number} req.query.subdivision_id
  * @param {object} res
  */
 exports.getUsersCalendars = async (req, res) => {
     try {
         let id = req.params.user_id;
         let monthId = req.query.month_id;
+        let subdivisionId = req.query.subdivision_id;
         let shifts = await knex("man_shifts")
             .select("shift_id", "month_id", "day_number", "status_id")
-            .where({user_id:id})
+            .where({ user_id: id, subdivision_id: subdivisionId})
             .andWhere({month_id: monthId})
             .orderBy([{column: "day_number"}, {column: "shift_id"}]);
         return res.status(200).json({shifts: shifts});
@@ -92,7 +98,7 @@ exports.getUsersCalendars = async (req, res) => {
 };
 
 /**
- * @async - Edit users current calendar
+ * @async - Edit users current calendar, added subdivisions
  * @returns - Api server response
  * @todo wrap all save callendar functions into one, only with diffrent middleware and routes (if possible)
  * @todo more validation
@@ -111,12 +117,13 @@ exports.editCurrentCalendar = async (req, res) => {
         };
         let userId = req.params.user_id;
         const { shifts } = req.body;
-        console.log("***" + userId + ", " + shifts[0].user_id)
+        // console.log("***" + userId + ", " + shifts[0].user_id)
         if (userId !== shifts[0].user_id) return res.status(400).json({error:"request data and user IDs are diffrent"});
         let monthId = shifts[0].month_id;
+        let subdivisionId = shifts[0].subdivision_id;
         let trx = await knex.transaction();
         await trx("man_shifts")
-            .where({ user_id: userId }).andWhere({ month_id: monthId })
+            .where({ user_id: userId, subdivision_id: subdivisionId}).andWhere({ month_id: monthId })
             .del()
             .catch((err) => {
                 trx.rollback();
@@ -144,13 +151,15 @@ exports.editCurrentCalendar = async (req, res) => {
 
 
 /**
- * @async - Save calendar in reservation phase
+ * @async - Save calendar in reservation phase. Asuuems all sent statuses are the same. Added subdivisions 
  * @returns - Api server response
  * @todo - Better validation
  * @param {object} req
  * @param {object} req.body
  * @param {JSON} req.body.shifts
  * @param {number} req.params.user_id
+ * @param {object} req.query
+ * @param {number} req.query.subdivision_id
  * @param {object} res
  */
 
@@ -164,21 +173,22 @@ exports.saveUsersCalendars = async (req, res) => {
         const {shifts} = req.body;
         let monthId  = shifts[0].month_id;
         let statusId = shifts[0].status_id;
+        let subdivisionId = shifts[0].subdivision_id;
         let now = new Date();
         let trx = await knex.transaction();
         await trx("man_shifts")
-        .where({ user_id: userId }).andWhere({ month_id: monthId})
-        .del()
-        .catch((err) =>{
-            trx.rollback();
-            throw Error(err);
+            .where({ user_id: userId, subdivision_id: subdivisionId}).andWhere({ month_id: monthId})
+            .del()
+            .catch((err) =>{
+                trx.rollback();
+                throw Error(err);
         });
         if (statusId === 2) {
             await trx("approval_sent_at")
-            .insert({user_id: userId, month_id: monthId, sent_at: now})
-            .catch((err) => {
-                trx.rollback();
-                throw Error(err);
+                .insert({ user_id: userId, subdivision_id: subdivisionId, month_id: monthId, sent_at: now})
+                .catch((err) => {
+                    trx.rollback();
+                    throw Error(err);
             });
         }
         await trx("man_shifts")
@@ -221,12 +231,12 @@ exports.saveApprovalCalendars = async (req, res) => {
         let userId = req.params.user_id;
         const { shifts } = req.body;
         let monthId = shifts[0].month_id;
- 
+        let subdivisionId = shifts[0].subdivision_id;
         //Start transaction
         let trx = await knex.transaction();
         //Delete all in range then insert new, rollback on error
         await trx("man_shifts")
-            .where({ user_id: userId }).andWhere({ month_id: monthId })
+            .where({ user_id: userId, subdivision_id: subdivisionId }).andWhere({ month_id: monthId })
             .del()
             .catch((err) => {
                 trx.rollback();
