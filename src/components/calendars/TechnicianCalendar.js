@@ -6,9 +6,10 @@ import shiftService from "../../services/shiftService";
 import userService from "../../services/userService";
 import statusService from "../../services/statusService";
 import calendarService from "../../services/calendarService";
-import { Table, Form, Alert, Button, ButtonToolbar } from "react-bootstrap";
+import { Table, Form } from "react-bootstrap";
 import Legend from "../Legend";
 import Buttons from "../Buttons";
+import Alerts from "../Alerts";
 import util from "../../util";
 import lang from "../../common/lang";
 
@@ -20,6 +21,7 @@ class TechnicianCalendar extends Component {
         this.state = {
             summary: [],
             calendar: {},
+            calendarPhase: "",
             shifts: {},
             statuses: [],
             selectedRoleId: -1,
@@ -27,12 +29,12 @@ class TechnicianCalendar extends Component {
             selectedUserId: -1,
             selectedMonthId: -1,
             currentMonth: "2019-10",
-            currentMonthPhase: "current",
             users: [],
             roles: [],
             subdivisions: [],
             months: [],
-            approved: false
+            response: "",
+            responseType: ""
         };
 
         this.onUserSelected = this.onUserSelected.bind(this);
@@ -46,30 +48,29 @@ class TechnicianCalendar extends Component {
         this.onChangeCurrent = this.onChangeCurrent.bind(this);
         this.onSaveApproval = this.onSaveApproval.bind(this);
         this.onConfirmApproval = this.onConfirmApproval.bind(this);
-        this.onReset = this.onReset.bind(this);
     }
 
     componentDidMount() {
         window.addEventListener("beforeunload", this.saveCache);
-        var savedState = sessionStorage.getItem("technicianCalendar");
+        //var savedState = sessionStorage.getItem("technicianCalendar");
         var params = this.props.match.params;
-        if (savedState != null) {
-            savedState = JSON.parse(savedState);
+        // if (savedState != null) {
+        //     savedState = JSON.parse(savedState);
 
-            if (
-                params.monthId === undefined || //if a sample param is empty OR
-                (savedState.selectedMonthId == params.monthId &&
-                    savedState.selectedRoleId == params.roleId &&
-                    savedState.selectedSubdivisionId == params.subdivisionId &&
-                    savedState.selectedUserId == params.userId)
-            ) {
-                // we came back to editing previous user
-                console.log("Restoring state");
-                this.setState(savedState);
-                return;
-            }
-            sessionStorage.removeItem("technicianCalendar");
-        }
+        //     if (
+        //         params.monthId === undefined || //if a sample param is empty OR
+        //         (savedState.selectedMonthId == params.monthId &&
+        //             savedState.selectedRoleId == params.roleId &&
+        //             savedState.selectedSubdivisionId == params.subdivisionId &&
+        //             savedState.selectedUserId == params.userId)
+        //     ) {
+        //         // we came back to editing previous user
+        //         console.log("Restoring state");
+        //         this.setState(savedState);
+        //         return;
+        //     }
+        //     sessionStorage.removeItem("technicianCalendar");
+        // }
 
         var roleId = params.roleId;
         var monthId = params.monthId;
@@ -95,6 +96,10 @@ class TechnicianCalendar extends Component {
                         currentMonthResp,
                         followingMonthResp
                     ) => {
+                        var selectedSubdivisionId = subdivisionId || -1;
+                        var selectedUserId = userId || -1;
+                        var selectedMonthId = monthId || -1;
+                        var selectedRoleId = roleId || -1;
                         followingMonthResp.data.unshift(currentMonthResp.data);
                         this.setState({
                             statuses: statusResp.data,
@@ -104,19 +109,28 @@ class TechnicianCalendar extends Component {
                                 role => role.role_id == 2 || role.role_id == 3
                             ),
                             subdivisions: subdivisionsResp.data,
-                            selectedRoleId: roleId || -1,
-                            selectedSubdivisionId: subdivisionId || -1,
-                            selectedUserId: userId || -1,
-                            selectedMonthId: monthId || -1
+                            selectedRoleId,
+                            selectedSubdivisionId,
+                            selectedUserId,
+                            selectedMonthId
                         });
-                        this.fetchMonthPhase(monthId);
+                        this.fetchUsers(roleId, subdivisionId);
                         this.fetchCalendar(
                             roleId,
                             subdivisionId,
                             userId,
                             monthId
                         );
-                        this.fetchSummary(roleId,subdivisionId,monthId);
+                        this.fetchSummary(
+                            roleId,
+                            selectedSubdivisionId,
+                            selectedMonthId
+                        );
+                        this.fetchCalendarPhase(
+                            selectedUserId,
+                            selectedSubdivisionId,
+                            selectedMonthId
+                        );
                     }
                 )
             );
@@ -126,10 +140,10 @@ class TechnicianCalendar extends Component {
 
     saveCache() {
         console.log("saving cache");
-        sessionStorage.setItem(
-            "technicianCalendar",
-            JSON.stringify(this.state)
-        );
+        // sessionStorage.setItem(
+        //     "technicianCalendar",
+        //     JSON.stringify(this.state)
+        // );
     }
 
     componentWillUnmount() {
@@ -161,48 +175,36 @@ class TechnicianCalendar extends Component {
         return days;
     }
 
-    getAlertIfNeeded() {
-        if (!this.shouldDisplayTable()) {
-            return (
-                <Alert variant="warning">{l.noResults}</Alert>
-            )
-        }
-        switch (this.state.currentMonthPhase) {
-            case "current":
-                return (
-                    <Alert variant="info">
-                        {l.alertEditingCurrentCalendar}
-                    </Alert>
-                );
-            case "past":
-                return (
-                    <Alert variant="warning">
-                        {l.alertCannotEditPastCalendar}
-                    </Alert>
-                );
-            case "reservations":
-                return (
-                    <Alert variant="info">
-                        {l.alertDisplayingReservationCalendar}
-                    </Alert>
-                );
-        }
-    }
-
     getSummaryNumber(shiftId, dayNumber) {
-        if (this.state.summary[shiftId] && this.state.summary[shiftId][dayNumber])
+        if (
+            this.state.summary[shiftId] &&
+            this.state.summary[shiftId][dayNumber]
+        )
             return this.state.summary[shiftId][dayNumber];
         return 0;
     }
 
+    fetchCalendarPhase(userId, subdivisionId, monthId) {
+        if (userId !== -1 && subdivisionId !== -1 && monthId !== -1) {
+            calendarService
+                .fetchUserCalendarPhase(userId, subdivisionId, monthId)
+                .then(({ phase }) => {
+                    this.setState({
+                        calendarPhase: phase
+                    });
+                });
+        }
+    }
+
     fetchSummary(roleId, subdivisionId, monthId) {
-        if(this.shouldFetchSummary(roleId, subdivisionId, monthId)) {
-            calendarService.fetchMonthSummary(roleId, subdivisionId, monthId)
+        if (this.shouldFetchSummary(roleId, subdivisionId, monthId)) {
+            calendarService
+                .fetchMonthSummary(roleId, subdivisionId, monthId)
                 .then(summary => {
                     this.setState({
                         summary
-                    })
-                })
+                    });
+                });
         }
     }
 
@@ -229,24 +231,15 @@ class TechnicianCalendar extends Component {
         }
     }
 
-    fetchMonthPhase(monthId) {
-        if (monthId !== undefined) {
-            axios
-                .get("/data/months-phase", {
-                    params: {
-                        month_id: monthId
-                    }
-                })
-                .then(resp => {
-                    this.setState({
-                        currentMonthPhase: resp.data.phase
-                    });
-                });
-        }
-    }
-
     shouldFetchSummary(roleId, subdivisionId, monthId) {
-        return roleId !== -1 && subdivisionId !== -1 && monthId !== -1;
+        return (
+            roleId &&
+            roleId !== -1 &&
+            subdivisionId &&
+            subdivisionId !== -1 &&
+            monthId &&
+            monthId !== -1
+        );
     }
 
     shouldFetchCalendar(roleId, subdivisionId, userId, monthId) {
@@ -267,14 +260,19 @@ class TechnicianCalendar extends Component {
     }
 
     shouldDisplayTable() {
-        return this.state.selectedUserId !== -1 && Object.keys(this.state.calendar).length > 0;
+        return (
+            this.state.selectedUserId !== -1 &&
+            Object.keys(this.state.calendar).length > 0
+        );
     }
 
     isEditable() {
-        return calendarService.isEditable(
-            this.state.currentMonthPhase,
-            authService.getUserRoleId(),            
-        ) && !this.approved;
+        return (
+            calendarService.isEditable(
+                this.state.calendarPhase,
+                authService.getUserRoleId()
+            )
+        );
     }
 
     onSubdivisionSelected(e) {
@@ -283,13 +281,27 @@ class TechnicianCalendar extends Component {
             selectedUserId: -1
         });
         this.fetchUsers(this.state.selectedRoleId, e.target.value);
-        this.fetchSummary(this.state.selectedRoleId,e.target.value,this.state.selectedMonthId);
+        this.fetchCalendarPhase(
+            this.state.selectedUserId,
+            parseInt(e.target.value),
+            this.state.selectedMonthId
+        );
+        this.fetchSummary(
+            this.state.selectedRoleId,
+            e.target.value,
+            this.state.selectedMonthId
+        );
     }
 
     onUserSelected(e) {
         this.setState({
             selectedUserId: parseInt(e.target.value)
         });
+        this.fetchCalendarPhase(
+            parseInt(e.target.value),
+            this.state.selectedSubdivisionId,
+            this.state.selectedMonthId
+        );
         this.fetchCalendar(
             this.state.selectedRoleId,
             this.state.selectedSubdivisionId,
@@ -304,7 +316,11 @@ class TechnicianCalendar extends Component {
             selectedUserId: -1
         });
         this.fetchUsers(e.target.value, this.state.selectedSubdivisionId);
-        this.fetchSummary(e.target.value,this.state.selectedSubdivisionId,this.state.selectedMonthId);
+        this.fetchSummary(
+            e.target.value,
+            this.state.selectedSubdivisionId,
+            this.state.selectedMonthId
+        );
     }
 
     onMonthSelected(e) {
@@ -317,8 +333,16 @@ class TechnicianCalendar extends Component {
             this.state.selectedUserId,
             e.target.value
         );
-        this.fetchMonthPhase(parseInt(e.target.value));
-        this.fetchSummary(this.state.selectedRoleId,this.state.selectedSubdivisionId,e.target.value);
+        this.fetchCalendarPhase(
+            this.state.selectedUserId,
+            this.state.selectedSubdivisionId,
+            parseInt(e.target.value)
+        );
+        this.fetchSummary(
+            this.state.selectedRoleId,
+            this.state.selectedSubdivisionId,
+            e.target.value
+        );
     }
 
     onDayClick(dayNumber) {
@@ -340,7 +364,7 @@ class TechnicianCalendar extends Component {
                 calendar
             );
             var newStatus = statusService.shiftStatusId(
-                this.state.currentMonthPhase,
+                this.state.calendarPhase,
                 currentStatus
             );
             if (!calendar[shiftId]) {
@@ -357,37 +381,76 @@ class TechnicianCalendar extends Component {
 
     onChangeCurrent() {
         var calendar = JSON.parse(JSON.stringify(this.state.calendar));
-        calendarService.saveMonthlyCalendar(calendar, this.state.selectedUserId, this.state.selectedMonthId)
+        calendarService
+            .saveMonthlyCalendar(
+                calendar,
+                this.state.selectedUserId,
+                this.state.selectedMonthId
+            )
             .then(cal => {
-                this.fetchSummary(this.state.selectedRoleId, this.state.selectedSubdivisionId, this.state.selectedMonthId);
+                this.fetchSummary(
+                    this.state.selectedRoleId,
+                    this.state.selectedSubdivisionId,
+                    this.state.selectedMonthId
+                );
             });
     }
 
     onSaveApproval() {
         var calendar = JSON.parse(JSON.stringify(this.state.calendar));
-        calendarService.saveMonthlyCalendarApproval(calendar, this.state.selectedUserId, this.state.selectedMonthId)
+        calendarService
+            .saveMonthlyCalendarApproval(
+                calendar,
+                this.state.selectedUserId,
+                this.state.selectedMonthId
+            )
             .then(cal => {
-                this.fetchSummary(this.state.selectedRoleId, this.state.selectedSubdivisionId, this.state.selectedMonthId);
+                this.fetchSummary(
+                    this.state.selectedRoleId,
+                    this.state.selectedSubdivisionId,
+                    this.state.selectedMonthId
+                );
             });
     }
 
     onConfirmApproval() {
         var calendar = JSON.parse(JSON.stringify(this.state.calendar));
-        calendarService.confirmMonthlyCalendar(calendar, this.state.selectedUserId, this.state.selectedMonthId, this.state.currentMonthPhase)
+        calendarService
+            .confirmMonthlyCalendar(
+                calendar,
+                this.state.selectedUserId,
+                this.state.selectedMonthId,
+                this.state.calendarPhase
+            )
             .then(res => {
-                var calendar = shiftService.parseShiftsResp(res[1], this.getShifts());
+                var calendar = shiftService.parseShiftsResp(
+                    this.getShifts(),
+                    res[1]
+                );
                 this.setState({
-                    calendar
+                    calendar,
+                    calendarPhase: "approved",
+                });
+                this.fetchSummary(
+                    this.state.selectedRoleId,
+                    this.state.selectedSubdivisionId,
+                    this.state.selectedMonthId
+                );
+            })
+            .catch(err => {
+                this.setState({
+                    response: l.serverError,
+                    responseType: "danger"
                 })
-                this.fetchSummary(this.state.selectedRoleId, this.state.selectedSubdivisionId, this.state.selectedMonthId);
             });
     }
 
-    onReset() {
-        //TODO
-    }
-
     render() {
+        
+        var loggedInUserId = authService.getLoggedInUserId();
+        var userRoleId = authService.getUserRoleId();
+        var { calendarPhase } = this.state;
+
         return (
             <>
                 <h2>{l.technicianCalendar}</h2>
@@ -401,7 +464,7 @@ class TechnicianCalendar extends Component {
                             value={this.state.selectedRoleId}
                         >
                             <option disabled key={0} value={-1}>
-                                Wybierz rolę
+                                {l.technicianRole}
                             </option>
                             {this.state.roles.map(role => (
                                 <option key={role.role_id} value={role.role_id}>
@@ -419,7 +482,7 @@ class TechnicianCalendar extends Component {
                             value={this.state.selectedSubdivisionId}
                         >
                             <option disabled key={0} value={-1}>
-                                Wybierz podwykonawcę
+                                {l.subdivision}
                             </option>
 
                             {this.state.subdivisions.map(subdivision => (
@@ -443,7 +506,7 @@ class TechnicianCalendar extends Component {
                             disabled={!this.shouldUpdateUsers()}
                         >
                             <option disabled key={0} value={-1}>
-                                Wybierz technika
+                                {l.technician}
                             </option>
 
                             {this.state.users.map(user => (
@@ -479,16 +542,22 @@ class TechnicianCalendar extends Component {
                 </div>
                 <Buttons
                     roleId={authService.getUserRoleId()}
-                    monthPhase={this.state.currentMonthPhase}
+                    calendarPhase={this.state.calendarPhase}
                     onSaveApproval={this.onSaveApproval}
                     onConfirmApproval={this.onConfirmApproval}
                     onChangeCurrent={this.onChangeCurrent}
                     onReset={this.onReset}
                 />
-                {this.getAlertIfNeeded()}
+                <Alerts
+                    response={this.state.response}
+                    responseType={this.state.responseType}
+                    userRoleId={userRoleId}
+                    calendarPhase={calendarPhase}
+                    noResults={!this.shouldDisplayTable()}
+                />
                 {this.shouldDisplayTable() ? (
                     <Table
-                        className={"technician " + this.state.currentMonthPhase}
+                        className={"technician " + this.state.calendarPhase}
                         bordered
                         responsive
                     >
@@ -534,17 +603,27 @@ class TechnicianCalendar extends Component {
                                                         shift.shift_id
                                                     );
                                                 }}
-                                            ><span className="summary">{this.getSummaryNumber(shift.shift_id,day.day_number)}</span></td>
+                                            >
+                                                <span className="summary">
+                                                    {this.getSummaryNumber(
+                                                        shift.shift_id,
+                                                        day.day_number
+                                                    )}
+                                                </span>
+                                            </td>
                                         ))}
                                     </tr>
                                 );
                             })}
                         </tbody>
                     </Table>
-                ) : "" }
+                ) : (
+                    ""
+                )}
                 <Legend
                     ids={statusService.getStatusIdsForPhase(
-                        this.state.currentMonthPhase
+                        this.state.calendarPhase,
+                        loggedInUserId
                     )}
                 ></Legend>
             </>

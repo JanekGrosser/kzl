@@ -63,6 +63,23 @@ class CalendarService {
         });
     }
 
+    /**
+     *
+     */
+    fetchUserCalendarWithPhase(monthId, userId, shifts, subdivisionId) {
+        return new Promise((resolve,reject) => {
+                Promise.all([
+                this.fetchMonthlyCalendar(monthId, userId, shifts),
+                this.fetchUserCalendarPhase(userId, subdivisionId, monthId)
+            ]).then(result => {
+                var calendarPhase = result[1].phase
+                resolve([result[0], calendarPhase]);
+            }).catch(err => {
+                reject(err);
+            })
+        });
+    }
+
     saveMonthlyCalendarApproval(calendar, userId, monthId) {
         return new Promise((resolve, reject) => {
             axios
@@ -117,6 +134,41 @@ class CalendarService {
         });
     }
 
+    sendMonthlyCalendarForApproval(calendar, userId, monthId, allShifts) {
+
+        var shifts = shiftService.toShiftRequestFormat(
+            JSON.parse(JSON.stringify(calendar)),
+            monthId,
+            userId
+        );
+
+        var approvalShifts = shifts.shifts.map(shift => {
+            shift.status_id = 2;
+            return shift;
+        });
+
+        shifts.shifts = approvalShifts;
+
+        return new Promise((resolve,reject) => {
+            axios.post(
+                `/data/users-calendars/${userId}`, shifts,
+                {
+                    month_id: monthId
+                }
+            )
+            .then(res => {
+                resolve(shiftService.parseShiftsResp(
+                    allShifts,
+                    shifts.shifts,
+                    userId
+                ))
+            })
+            .catch(err => {
+                reject(err);
+            })
+        });
+    }
+
     confirmMonthlyCalendar(calendar, userId, monthId, selectedMonthPhase) {
         var { shifts } = shiftService.toShiftRequestFormat(
             calendar,
@@ -124,9 +176,12 @@ class CalendarService {
             userId
         );
         shifts.map(shift => {
-            shift.status_id = statusService.shiftStatusIdOnConfirm(selectedMonthPhase,shift.status_id)
+            shift.status_id = statusService.shiftStatusIdOnConfirm(
+                selectedMonthPhase,
+                shift.status_id
+            );
             return shift;
-        })
+        });
         return new Promise((resolve, reject) => {
             axios
                 .post(
@@ -140,6 +195,25 @@ class CalendarService {
                 )
                 .then(resp => {
                     resolve([resp, shifts]);
+                })
+                .catch(err => {
+                    reject(err);
+                });
+        });
+    }
+
+    fetchUserCalendarPhase(userId, subdivisionId, monthId) {
+        return new Promise((resolve, reject) => {
+            axios
+                .get(`/data/calendar-phase/`, {
+                    params: {
+                        month_id: monthId,
+                        subdivision_id: subdivisionId,
+                        user_id: userId
+                    }
+                })
+                .then(resp => {
+                    resolve(resp.data);
                 })
                 .catch(err => {
                     reject(err);
@@ -206,36 +280,45 @@ class CalendarService {
         return promise;
     }
 
-    //TODO wont be used for now
-    confirmDailyCalendar(dayCalendar, monthId, roleId, dayNumber, monthPhase) {
-        var tempDayCalendar = JSON.parse(JSON.stringify(dayCalendar));
-        Object.keys(tempDayCalendar).forEach(userId => {
-            Object.keys(tempDayCalendar[userId]).forEach(shiftId => {
-                tempDayCalendar[userId][
-                    shiftId
-                ] = statusService.shiftStatusIdOnConfirm(
-                    monthPhase,
-                    tempDayCalendar[userId][shiftId]
-                );
-            });
-        });
-        //reverseConvertDailyCalendarShiftsToDailyCalendarObject
-    }
+    // //TODO wont be used for now
+    // confirmDailyCalendar(dayCalendar, monthId, roleId, dayNumber, monthPhase) {
+    //     var tempDayCalendar = JSON.parse(JSON.stringify(dayCalendar));
+    //     Object.keys(tempDayCalendar).forEach(userId => {
+    //         Object.keys(tempDayCalendar[userId]).forEach(shiftId => {
+    //             tempDayCalendar[userId][
+    //                 shiftId
+    //             ] = statusService.shiftStatusIdOnConfirm(
+    //                 monthPhase,
+    //                 tempDayCalendar[userId][shiftId]
+    //             );
+    //         });
+    //     });
+    //     //reverseConvertDailyCalendarShiftsToDailyCalendarObject
+    // }
 
-    isEditable(monthPhase, userRoleId) {
+    /**
+     * 
+     * @param {*} calendarPhase 
+     * @param {*} userRoleId 
+     */
+    isEditable(calendarPhase, userRoleId) {
         switch (userRoleId) {
             case 1:
                 return true;
             case 2:
             case 3:
-                return monthPhase === "reservations";
+                return calendarPhase === "reservations";
             case 4:
                 return false;
             case 5:
-                return monthPhase === "current" || monthPhase === "approval";
+                return calendarPhase === "current" || calendarPhase === "approval";
             default:
                 return false;
         }
+    }
+
+    inApproval(calendarPhase) {
+        return calendarPhase === "approval";
     }
 
     /**

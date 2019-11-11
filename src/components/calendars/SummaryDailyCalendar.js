@@ -136,6 +136,7 @@ class SummaryDailyCalendar extends Component {
     }
 
     fetchMonthPhase(monthId) {
+        console.log(monthId);
         axios
             .get("/data/months-phase", {
                 params: {
@@ -143,6 +144,7 @@ class SummaryDailyCalendar extends Component {
                 }
             })
             .then(resp => {
+                console.log(resp);
                 this.setState({
                     currentMonthPhase: resp.data.phase
                 });
@@ -582,9 +584,7 @@ class SummaryDailyCalendar extends Component {
                         </tbody>
                     </Table>
                     <Legend
-                        ids={statusService.getStatusIdsForPhase(
-                            this.state.currentMonthPhase
-                        )}
+                        ids={[5]}
                     ></Legend>
                 </>
             </>

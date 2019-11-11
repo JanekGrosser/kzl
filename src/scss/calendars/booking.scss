@@ -9,16 +9,9 @@ main {
                     margin-right: 1rem;
                 }
             }
-            .alert {
-                margin-bottom: 1rem;
-                margin-right: 0;
-            }
             table.booking {
+
                 td {
-                    background-color: transparent;
-                    &:hover {
-                        background-color: rgba(0, 0, 0, 0.3);
-                    }
                     &.approval {
                         background-color: $info-background;
                         i {
@@ -28,16 +21,17 @@ main {
                             }
                         }
                     }
-                    &.editable {
-                        background-color: $primary-background;
-                        i {
-                            color: $primary-text;
-                            &.default {
-                                display: inline;
+                }
+                &.approval, &.approved {
+                    td {
+                        &:hover {
+                            cursor: not-allowed;
+                            &:first-child {
+                                background-color: initial;
+                                cursor: auto;
                             }
                         }
                     }
-                    
                 }
             }
         }

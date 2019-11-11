@@ -15,6 +15,7 @@ class CurrentCalendar extends Component {
         super(props);
         this.state = {
             currentShifts: {},
+            calendarPhase: "",
             currentMonth: "2000-01",
             currentMonthId: 0,
             shifts: {},
@@ -35,7 +36,6 @@ class CurrentCalendar extends Component {
             .then(
                 axios.spread(
                     (statusResp, shiftsResp, calendarResp, monthResp) => {
-                        console.log(calendarResp.data);
                         var parsedShifts = shiftService.parseShiftsResp(
                             shiftsResp.data,
                             calendarResp.data,
