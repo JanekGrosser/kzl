@@ -22,7 +22,7 @@ exports.getShiftsCount = async (req, res) =>{
         let count = await knex("division_shifts_view")
             .count("shift_id", {as: "shifts_count"})
             .select("day_number", "shift_id")
-            .where("user_subdivisions", "like", "%" + subdivisionId+"%")
+            .where("user_subdivisions", "like", "%" + subdivisionId+"%") // LIKE not needed, change
             .andWhere({ month_id: monthId, role_id: roleId})
             .whereNotIn("status_id", [0,1,4,7,9])
             .groupBy("day_number", "shift_id")

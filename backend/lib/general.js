@@ -1,6 +1,6 @@
 "use-strict";
 const dateFns = require("date-fns");
-const knex = require("../config/knex");
+// const knex = require("../config/knex");
 
 /**
  * @returns current yearMonth string (YYYY-MM)
