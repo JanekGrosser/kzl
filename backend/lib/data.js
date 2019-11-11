@@ -86,7 +86,7 @@ exports.getUsersCalendars = async (req, res) => {
         let monthId = req.query.month_id;
         let subdivisionId = req.query.subdivision_id;
         let shifts = await knex("man_shifts")
-            .select("shift_id", "month_id", "day_number", "status_id")
+            .select("shift_id", "month_id", "day_number", "status_id", "subdivision_id")
             .where({ user_id: id, subdivision_id: subdivisionId})
             .andWhere({month_id: monthId})
             .orderBy([{column: "day_number"}, {column: "shift_id"}]);
@@ -151,7 +151,7 @@ exports.editCurrentCalendar = async (req, res) => {
 
 
 /**
- * @async - Save calendar in reservation phase. Asuuems all sent statuses are the same. Added subdivisions 
+ * @async - Save calendar in reservation phase. Asuems all sent statuses are the same. Added subdivisions 
  * @returns - Api server response
  * @todo - Better validation
  * @param {object} req
@@ -211,7 +211,7 @@ exports.saveUsersCalendars = async (req, res) => {
 
 
 /**
- * @async - Save calendar by KZ in approval phase
+ * @async - Save calendar by KZ in approval phase. Added subdivisions
  * @returns - Api server response and sends SMS on approved statuses
  * @todo better validation
  * @param {object} req
@@ -277,6 +277,7 @@ exports.saveApprovalCalendars = async (req, res) => {
 /**
  * @async - Get day summary calendar for specific subdivision
  * @returns - Api server response and data
+ * @todo this may not work with mulitple subdivisions, TEST
  * @param {object} req
  * @param {object} req.params
  * @param {number} req.params.subdivision_id
@@ -304,7 +305,7 @@ exports.getDaySummary = async (req, res) => {
             "month_id", 
             "day_number", 
             "shift_id", 
-            "status_id"
+            "status_id",
             )
         .innerJoin("users_view", "users_view.user_id", "man_shifts.user_id" )
         .whereNot({ status_id: 1 })
