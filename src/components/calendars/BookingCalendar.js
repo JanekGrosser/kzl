@@ -206,7 +206,6 @@ class BookingCalendar extends Component {
         var userCsr = authService.getUserCSR();
 
         var { selectedMonthId, currentShifts, calendarPhase } = this.state;
-        console.log(selectedMonthId, calendarPhase);
 
         return (
             <>
@@ -245,6 +244,7 @@ class BookingCalendar extends Component {
                     responseType={this.state.responseType}
                     userRoleId={userRoleId}
                     calendarPhase={calendarPhase}
+                    noResults={!(this.state.selectedMonthId !== -1)}
                 />
                 {this.state.selectedMonthId !== -1 ? (
                     <>

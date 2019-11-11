@@ -78,7 +78,7 @@ class Alerts extends Component {
     }
 
     render() {
-        var { userRoleId, calendarPhase, response, responseType } = this.props;
+        var { userRoleId, calendarPhase, response, responseType, noResults } = this.props;
 
         return (
             <>
@@ -87,7 +87,7 @@ class Alerts extends Component {
                 ) : (
                     ""
                 )}
-                {this.determineCalendarPhaseAlert(userRoleId, calendarPhase)}
+                {this.determineCalendarPhaseAlert(userRoleId, calendarPhase, noResults)}
             </>
         );
     }
