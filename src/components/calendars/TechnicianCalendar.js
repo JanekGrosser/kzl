@@ -212,7 +212,7 @@ class TechnicianCalendar extends Component {
         //debugger;
         if (this.shouldFetchCalendar(roleId, subdivisionId, userId, monthId)) {
             calendarService
-                .fetchMonthlyCalendar(monthId, userId, this.getShifts())
+                .fetchMonthlyCalendar(monthId, userId, this.getShifts(), subdivisionId)
                 .then(calendar => {
                     this.setState({
                         calendar
@@ -355,7 +355,7 @@ class TechnicianCalendar extends Component {
         );
     }
 
-    onCellClicked(dayNumber, shiftId) {
+    onCellClicked(dayNumber, shiftId, subdivisionId) {
         if (this.isEditable()) {
             var calendar = JSON.parse(JSON.stringify(this.state.calendar));
             var currentStatus = statusService.getStatusIdFromCurrentShifts(
@@ -371,7 +371,8 @@ class TechnicianCalendar extends Component {
                 calendar[shiftId] = {};
             }
             calendar[shiftId][dayNumber] = {
-                status_id: newStatus
+                status_id: newStatus,
+                subdivision_id: this.state.selectedSubdivisionId
             };
             this.setState({
                 calendar
@@ -385,14 +386,25 @@ class TechnicianCalendar extends Component {
             .saveMonthlyCalendar(
                 calendar,
                 this.state.selectedUserId,
-                this.state.selectedMonthId
+                this.state.selectedMonthId,
+                this.state.selectedSubdivisionId
             )
             .then(cal => {
                 this.fetchSummary(
                     this.state.selectedRoleId,
                     this.state.selectedSubdivisionId,
-                    this.state.selectedMonthId
+                    this.state.selectedMonthId,
                 );
+                this.setState({
+                    response: l.alertCalendarCurrentChanged,
+                    responseType: "success"
+                })
+            })
+            .catch(err => {
+                this.setState({
+                    response: l.serverError,
+                    responseType: "danger"
+                })
             });
     }
 
@@ -402,7 +414,8 @@ class TechnicianCalendar extends Component {
             .saveMonthlyCalendarApproval(
                 calendar,
                 this.state.selectedUserId,
-                this.state.selectedMonthId
+                this.state.selectedMonthId,
+                this.state.selectedSubdivisionId
             )
             .then(cal => {
                 this.fetchSummary(
@@ -410,6 +423,16 @@ class TechnicianCalendar extends Component {
                     this.state.selectedSubdivisionId,
                     this.state.selectedMonthId
                 );
+                this.setState({
+                    response: l.alertCalendarSaved,
+                    responseType: "success"
+                })
+            })
+            .catch(err => {
+                this.setState({
+                    response: l.serverError,
+                    responseType: "danger"
+                })
             });
     }
 
@@ -420,7 +443,8 @@ class TechnicianCalendar extends Component {
                 calendar,
                 this.state.selectedUserId,
                 this.state.selectedMonthId,
-                this.state.calendarPhase
+                this.state.calendarPhase,
+                this.state.selectedSubdivisionId
             )
             .then(res => {
                 var calendar = shiftService.parseShiftsResp(
@@ -430,6 +454,8 @@ class TechnicianCalendar extends Component {
                 this.setState({
                     calendar,
                     calendarPhase: "approved",
+                    response: l.alertCalendarApproved,
+                    responseType: "success"
                 });
                 this.fetchSummary(
                     this.state.selectedRoleId,

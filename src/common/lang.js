@@ -74,6 +74,7 @@ var translations = {
         alertCalendarSaved: "Kalendarz zapisany",
         alertCalendarCannotSaveCalendar: "Czas edycji kalendarza upłynął",
         alertCalendarError: "Wystąpił błąd. Spróbuj ponownie",
+        alertCalendarCurrentChanged: "Kalendarz bieżacy zmieniony",
         alertEditingApprovalCalendar: "Kalendarz w fazie zatwierdzania",
         alertCalendarSentToApproval: "Kalendarz został wysłany do zatwierdzenia",
         technicianRole: "Rola technika",

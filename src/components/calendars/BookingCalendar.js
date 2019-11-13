@@ -14,6 +14,7 @@ import Alerts from "../Alerts";
 var l = lang();
 
 class BookingCalendar extends Component {
+
     constructor(props) {
         super(props);
 
@@ -128,10 +129,10 @@ class BookingCalendar extends Component {
 
     onSave() {
         var userId = authService.getLoggedInUserId();
-        var { currentShifts, selectedMonthId } = this.state;
+        var { currentShifts, selectedMonthId, subdivisionId } = this.state;
 
         calendarService
-            .saveMonthlyCalendar(currentShifts, userId, selectedMonthId)
+            .saveMonthlyCalendar(currentShifts, userId, selectedMonthId, subdivisionId)
             .then(() => {
                 this.setState({
                     response: l.alertCalendarSaved,
