@@ -30,6 +30,13 @@ main {
             }
 
             table.summary-daily  {
+                td {
+                    &.approved,
+                    &.current-added {
+                        background-color: $success-background;
+                        color: $success-text;
+                    }
+                }
                 &.past {
                     td {
                         &.approved,

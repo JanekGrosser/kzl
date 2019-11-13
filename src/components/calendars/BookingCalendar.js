@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import axios from "axios";
 import authService from "../../services/authService";
-import shiftService from "../../services/shiftService";
 import statusService from "../../services/statusService";
 import { Table, Alert, Form, Button, ButtonToolbar } from "react-bootstrap";
 import util from "../../util";
@@ -14,7 +13,6 @@ import Alerts from "../Alerts";
 var l = lang();
 
 class BookingCalendar extends Component {
-
     constructor(props) {
         super(props);
 
@@ -23,14 +21,17 @@ class BookingCalendar extends Component {
             currentShifts: {},
             months: [],
             selectedMonthId: -1,
+            selectedSubdivisionId: -1,
             shifts: {},
             statuses: [],
+            subdivisions: [],
             calendarPhase: "",
             response: "",
             responseType: ""
         };
 
         this.onMonthSelected = this.onMonthSelected.bind(this);
+        this.onSubdivisionSelected = this.onSubdivisionSelected.bind(this);
         this.onDayClicked = this.onDayClicked.bind(this);
         this.onSave = this.onSave.bind(this);
         this.onSendForApproval = this.onSendForApproval.bind(this);
@@ -41,18 +42,23 @@ class BookingCalendar extends Component {
         axios
             .all([
                 axios.get("/data/shifts"),
-                axios.get("/data/following-months")
+                axios.get("/data/following-months"),
+                axios.get("/data/subdivisions")
             ])
             .then(
-                axios.spread((shiftsResp, followingMonthsResp) => {
-                    var months = followingMonthsResp.data;
-                    var shifts = shiftsResp.data;
+                axios.spread(
+                    (shiftsResp, followingMonthsResp, subdivisionsResp) => {
+                        var months = followingMonthsResp.data;
+                        var shifts = shiftsResp.data;
+                        var subdivisions = subdivisionsResp.data;
 
-                    this.setState({
-                        months,
-                        shifts
-                    });
-                })
+                        this.setState({
+                            months,
+                            shifts,
+                            subdivisions
+                        });
+                    }
+                )
             );
     }
 
@@ -117,7 +123,8 @@ class BookingCalendar extends Component {
             } else {
                 currentShifts[shiftId] = Object.assign(currentShifts[shiftId], {
                     [dayNumber]: {
-                        status_id: 1
+                        status_id: 1,
+                        subdivision_id: this.state.selectedSubdivisionId
                     }
                 });
             }
@@ -132,7 +139,12 @@ class BookingCalendar extends Component {
         var { currentShifts, selectedMonthId, subdivisionId } = this.state;
 
         calendarService
-            .saveMonthlyCalendar(currentShifts, userId, selectedMonthId, subdivisionId)
+            .saveMonthlyCalendar(
+                currentShifts,
+                userId,
+                selectedMonthId,
+                subdivisionId
+            )
             .then(() => {
                 this.setState({
                     response: l.alertCalendarSaved,
@@ -176,29 +188,84 @@ class BookingCalendar extends Component {
     onMonthSelected(e) {
         var selectedMonthId = parseInt(e.target.value);
         var userId = authService.getLoggedInUserId();
-        var userSubdivisionId = authService.getUserSubdivisions()[0];
+        var selectedSubdivisionId = this.state.selectedSubdivisionId
         var { shifts } = this.state;
         this.clearAlert();
 
-        calendarService
+        this.setState({
+            selectedMonthId
+        })
+
+        if (
+            this.shouldFetchCalendar(
+                selectedMonthId,
+                selectedSubdivisionId
+            )
+        ) {
+            calendarService
+                .fetchUserCalendarWithPhase(
+                    selectedMonthId,
+                    userId,
+                    shifts,
+                    selectedSubdivisionId
+                )
+                .then(result => {
+                    var calendar = result[0];
+                    var calendarPhase = result[1];
+                    this.setState({
+                        currentShifts: calendar,
+                        calendarPhase
+                    });
+                })
+                .catch(err => {
+                    console.error(err);
+                });
+        }
+    }
+
+    onSubdivisionSelected(e) {
+        
+        var selectedMonthId = this.state.selectedMonthId
+        var selectedSubdivisionId = parseInt(e.target.value);
+        var userId = authService.getLoggedInUserId();
+        var { shifts } = this.state;
+        this.clearAlert();
+
+        this.setState({
+            selectedSubdivisionId
+        })
+
+        if (this.shouldFetchCalendar(selectedMonthId, selectedSubdivisionId)) {
+            calendarService
             .fetchUserCalendarWithPhase(
                 selectedMonthId,
                 userId,
                 shifts,
-                userSubdivisionId
+                selectedSubdivisionId
             )
             .then(result => {
                 var calendar = result[0];
                 var calendarPhase = result[1];
                 this.setState({
                     currentShifts: calendar,
-                    calendarPhase,
-                    selectedMonthId
+                    calendarPhase
                 });
             })
             .catch(err => {
                 console.error(err);
             });
+        }
+    }
+
+    shouldFetchCalendar(monthId, subdivisionId) {
+        return monthId !== -1 && subdivisionId !== -1;
+    }
+
+    shouldDisplayTable() {
+        return (
+            this.state.selectedMonthId !== -1 &&
+            this.state.selectedSubdivisionId !== -1
+        );
     }
 
     render() {
@@ -206,7 +273,12 @@ class BookingCalendar extends Component {
         var userName = authService.getUsername();
         var userCsr = authService.getUserCSR();
 
-        var { selectedMonthId, currentShifts, calendarPhase } = this.state;
+        var {
+            selectedMonthId,
+            currentShifts,
+            calendarPhase,
+            selectedSubdivisionId
+        } = this.state;
 
         return (
             <>
@@ -233,21 +305,42 @@ class BookingCalendar extends Component {
                             ))}
                         </Form.Control>
                     </Form.Group>
+                    <Form.Group>
+                        <Form.Label>{l.subdivision}</Form.Label>
+                        <Form.Control
+                            as="select"
+                            name="selected_subdivision"
+                            onChange={this.onSubdivisionSelected}
+                            value={selectedSubdivisionId}
+                        >
+                            <option disabled key={0} value={-1}>
+                                {l.subdivision}
+                            </option>
+                            {this.state.subdivisions.map(subdivision => (
+                                <option
+                                    key={subdivision.subdivision_id}
+                                    value={subdivision.subdivision_id}
+                                >
+                                    {subdivision.subdivision_name}
+                                </option>
+                            ))}
+                        </Form.Control>
+                    </Form.Group>
                 </div>
                 <Buttons
-                            roleId={authService.getUserRoleId()}
-                            calendarPhase={this.state.calendarPhase}
-                            onSave={this.onSave}
-                            onApproval={this.onSendForApproval}
-                        />
+                    roleId={authService.getUserRoleId()}
+                    calendarPhase={this.state.calendarPhase}
+                    onSave={this.onSave}
+                    onApproval={this.onSendForApproval}
+                />
                 <Alerts
                     response={this.state.response}
                     responseType={this.state.responseType}
                     userRoleId={userRoleId}
                     calendarPhase={calendarPhase}
-                    noResults={!(this.state.selectedMonthId !== -1)}
+                    noResults={!(this.shouldDisplayTable())}
                 />
-                {this.state.selectedMonthId !== -1 ? (
+                {this.shouldDisplayTable() ? (
                     <>
                         <Table
                             className={"booking " + calendarPhase}
@@ -296,7 +389,9 @@ class BookingCalendar extends Component {
                                                         )
                                                     }
                                                 >
-                                                    {calendarService.inApproval(this.state.calendarPhase) ? (
+                                                    {calendarService.inApproval(
+                                                        this.state.calendarPhase
+                                                    ) ? (
                                                         <i className="default fas fa-paper-plane"></i>
                                                     ) : (
                                                         <i className="default fas fa-check"></i>

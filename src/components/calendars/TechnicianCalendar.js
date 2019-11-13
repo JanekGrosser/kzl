@@ -278,7 +278,9 @@ class TechnicianCalendar extends Component {
     onSubdivisionSelected(e) {
         this.setState({
             selectedSubdivisionId: parseInt(e.target.value),
-            selectedUserId: -1
+            selectedUserId: -1,
+            response: "",
+            responseType: ""
         });
         this.fetchUsers(this.state.selectedRoleId, e.target.value);
         this.fetchCalendarPhase(
@@ -295,7 +297,9 @@ class TechnicianCalendar extends Component {
 
     onUserSelected(e) {
         this.setState({
-            selectedUserId: parseInt(e.target.value)
+            selectedUserId: parseInt(e.target.value),
+            response: "",
+            responseType: ""
         });
         this.fetchCalendarPhase(
             parseInt(e.target.value),
@@ -313,7 +317,9 @@ class TechnicianCalendar extends Component {
     onRoleSelected(e) {
         this.setState({
             selectedRoleId: parseInt(e.target.value),
-            selectedUserId: -1
+            selectedUserId: -1,
+            response: "",
+            responseType: ""
         });
         this.fetchUsers(e.target.value, this.state.selectedSubdivisionId);
         this.fetchSummary(
@@ -325,7 +331,9 @@ class TechnicianCalendar extends Component {
 
     onMonthSelected(e) {
         this.setState({
-            selectedMonthId: parseInt(e.target.value)
+            selectedMonthId: parseInt(e.target.value),
+            response: "",
+            responseType: ""
         });
         this.fetchCalendar(
             this.state.selectedRoleId,

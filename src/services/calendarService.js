@@ -234,7 +234,7 @@ class CalendarService {
                     params: {
                         month_id: monthId,
                         subdivision_id: subdivisionId,
-                        user_id: userId
+                        user_id: userId,
                     }
                 })
                 .then(resp => {
