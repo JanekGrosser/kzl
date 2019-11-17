@@ -55,7 +55,7 @@ class EditUserModal extends Component {
                     this.setState({
                         alert: true,
                         error: false,
-                        message: this.UNSAFE_componentWillUpdate.format(lang.userEdited, userToSave)
+                        message: util.format(lang.userEdited, userToSave)
                     });
                 })
                 .catch(err => {

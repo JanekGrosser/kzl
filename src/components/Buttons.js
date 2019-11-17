@@ -4,11 +4,11 @@ import lang from "../common/lang";
 
 var l = lang();
 /**
- * Renders toolbar and actions depending on role and month phase
+ * Renders toolbar and actions depending on role and calendar phase
  */
 class Buttons extends Component {
-    determineButtons(roleId, monthPhase) {
-        switch (monthPhase) {
+    determineButtons(roleId, calendarPhase) {
+        switch (calendarPhase) {
             case "reservations":
                 switch (roleId) {
                     case 3:
@@ -88,12 +88,12 @@ class Buttons extends Component {
 
     render() {
         var roleId = this.props.roleId;
-        var monthPhase = this.props.monthPhase;
+        var calendarPhase = this.props.calendarPhase;
         var displayReset = this.props.displayReset;
 
         return (
             <ButtonToolbar>
-                {this.determineButtons(roleId, monthPhase)}
+                {this.determineButtons(roleId, calendarPhase)}
                 {displayReset ? (
                     <Button variant="warning" onClick={this.props.onReset}>
                         <i className="fas fa-sync"></i>

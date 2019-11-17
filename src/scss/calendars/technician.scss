@@ -11,7 +11,19 @@ main {
             }
 
             table.technician {
+                th:hover, td:first-child:hover {
+                    cursor: pointer !important;
+                }
+                th:hover {
+                    background-color: black;
+                }
+                td:first-child:hover {
+                    background-color: $secondary-background;
+                }
                 td {
+                    &:hover {
+                        cursor: pointer;
+                    }
                     position: relative;
                     .summary {
                         width: 12px;
@@ -24,22 +36,37 @@ main {
                 }
                 &.reservations {
                     td {
+                        &:hover {
+                            cursor: not-allowed;
+                        }
                         &.editable,
+                        &.approval,
                         &.approval-added,
                         &.approval-removed,
                         &.approved-added,
                         &.approved-removed,
+                        &.approved,
                         &.current-added,
                         &.current-removed {
                             background-color: transparent;
                         }
                     }
                 }
-            }
-
-            .alert {
-                margin-bottom: 1rem;
-                margin-right: 0;
+                &.approved {
+                    td {
+                        &:hover {
+                            cursor: not-allowed;
+                        }
+                        &.editable,
+                        &.approval,
+                        &.approval-added,
+                        &.approval-removed,
+                        &.current-added,
+                        &.current-removed {
+                            background-color: transparent;
+                        }
+                    }
+                }
             }
         }
     }

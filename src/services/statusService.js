@@ -7,8 +7,8 @@ class StatusService {
         return [2, 3, 5, 6, 8];
     }
 
-    shiftStatusId(monthStatus, currentStatusId) {
-        switch (monthStatus) {
+    shiftStatusId(calendarStatus, currentStatusId) {
+        switch (calendarStatus) {
             case "approval":
                 switch (currentStatusId) {
                     case 2:
@@ -52,7 +52,7 @@ class StatusService {
      * when going from 3 to 4, statuses should be removed or set as approved
      * @param {} phase
      */
-    getStatusIdsForPhase(phase, userRole) {
+    getStatusIdsForPhase(phase, userRole, calendarType) {
         switch (phase) {
             case "past":
                 return [-1];
@@ -60,13 +60,19 @@ class StatusService {
                 if (userRole && [2, 3].indexOf(userRole) > -1) return [1, 2];
                 return [2];
             case "approval":
-                return [2, 3, 4];
+                switch(userRole) {
+                    case 2:
+                    case 3:
+                        return [2]
+                    default:
+                        return [2,3,4]
+                }
             case "approved":
                 return [5, 6, 7];
             case "current":
                 return [5, 8, 9];
             default:
-                return [2, 3, 4, 5, 6];
+                return [];
         }
     }
 
@@ -82,9 +88,9 @@ class StatusService {
                     case 2:
                         return 5;
                     case 3:
-                        return 3;
+                        return 6;
                     case 4:
-                        return 4;
+                        return 7;
                     default:
                         return 0;
                 }

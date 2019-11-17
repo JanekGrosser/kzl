@@ -26,7 +26,8 @@ class ShiftService {
                     .filter(curr_shift => curr_shift.shift_id == a.shift_id)
                     .forEach(curr_shift => {
                         parsed[shift.shift_id][curr_shift.day_number] = {
-                            status_id: curr_shift.status_id
+                            status_id: curr_shift.status_id,
+                            subdivision_id: curr_shift.subdivision_id
                         };
                     });
             });
@@ -50,7 +51,8 @@ class ShiftService {
                     month_id: monthId,
                     day_number: dayNumber,
                     user_id: userId,
-                    status_id: currentShifts[shiftId][dayNumber].status_id
+                    status_id: currentShifts[shiftId][dayNumber].status_id,
+                    subdivision_id: currentShifts[shiftId][dayNumber].subdivision_id
                 })
             });
         })

@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import statusService from "../services/statusService";
 
 class Legend extends Component {
+
     render() {
         var ids = this.props.ids || statusService.getAllStatusIds();
         return (

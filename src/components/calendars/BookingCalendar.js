@@ -1,21 +1,16 @@
 import React, { Component } from "react";
 import axios from "axios";
 import authService from "../../services/authService";
-import shiftService from "../../services/shiftService";
 import statusService from "../../services/statusService";
 import { Table, Alert, Form, Button, ButtonToolbar } from "react-bootstrap";
 import util from "../../util";
 import lang from "../../common/lang";
 import Legend from "../Legend";
+import calendarService from "../../services/calendarService";
+import Buttons from "../Buttons";
+import Alerts from "../Alerts";
 
 var l = lang();
-
-/**
- * ID Helper
- *
- * 1 - editable - on save/local storage,
- * on send - 2 - approval
- */
 
 class BookingCalendar extends Component {
     constructor(props) {
@@ -26,12 +21,17 @@ class BookingCalendar extends Component {
             currentShifts: {},
             months: [],
             selectedMonthId: -1,
+            selectedSubdivisionId: -1,
             shifts: {},
             statuses: [],
-            calendarInApproval: false
+            subdivisions: [],
+            calendarPhase: "",
+            response: "",
+            responseType: ""
         };
 
         this.onMonthSelected = this.onMonthSelected.bind(this);
+        this.onSubdivisionSelected = this.onSubdivisionSelected.bind(this);
         this.onDayClicked = this.onDayClicked.bind(this);
         this.onSave = this.onSave.bind(this);
         this.onSendForApproval = this.onSendForApproval.bind(this);
@@ -42,18 +42,23 @@ class BookingCalendar extends Component {
         axios
             .all([
                 axios.get("/data/shifts"),
-                axios.get("/data/following-months")
+                axios.get("/data/following-months"),
+                axios.get("/data/subdivisions")
             ])
             .then(
-                axios.spread((shiftsResp, followingMonthsResp) => {
-                    var months = followingMonthsResp.data;
-                    var shifts = shiftsResp.data;
+                axios.spread(
+                    (shiftsResp, followingMonthsResp, subdivisionsResp) => {
+                        var months = followingMonthsResp.data;
+                        var shifts = shiftsResp.data;
+                        var subdivisions = subdivisionsResp.data;
 
-                    this.setState({
-                        months,
-                        shifts
-                    });
-                })
+                        this.setState({
+                            months,
+                            shifts,
+                            subdivisions
+                        });
+                    }
+                )
             );
     }
 
@@ -96,8 +101,17 @@ class BookingCalendar extends Component {
         return [];
     }
 
+    clearAlert() {
+        this.setState({
+            response: "",
+            responseType: ""
+        });
+    }
+
     onDayClicked(shiftId, dayNumber) {
-        if (!this.state.calendarInApproval) {
+        var { calendarPhase } = this.state;
+        var userRoleId = authService.getUserRoleId();
+        if (calendarService.isEditable(calendarPhase, userRoleId)) {
             var currentShifts = JSON.parse(
                 JSON.stringify(this.state.currentShifts)
             );
@@ -109,7 +123,8 @@ class BookingCalendar extends Component {
             } else {
                 currentShifts[shiftId] = Object.assign(currentShifts[shiftId], {
                     [dayNumber]: {
-                        status_id: 1
+                        status_id: 1,
+                        subdivision_id: this.state.selectedSubdivisionId
                     }
                 });
             }
@@ -120,85 +135,156 @@ class BookingCalendar extends Component {
     }
 
     onSave() {
-        var requestObject = shiftService.toShiftRequestFormat(
-            this.state.currentShifts,
-            this.state.selectedMonthId,
-            authService.getLoggedInUserId()
-        );
-        axios
-            .post(
-                `/data/users-calendars/${authService.getLoggedInUserId()}`,
-                requestObject
+        var userId = authService.getLoggedInUserId();
+        var { currentShifts, selectedMonthId, subdivisionId } = this.state;
+
+        calendarService
+            .saveMonthlyCalendar(
+                currentShifts,
+                userId,
+                selectedMonthId,
+                subdivisionId
             )
-            .then(res => {
-                console.log(res);
+            .then(() => {
+                this.setState({
+                    response: l.alertCalendarSaved,
+                    responseType: "success"
+                });
+            })
+            .catch(err => {
+                this.setState({
+                    response: l.serverError,
+                    responseType: "danger"
+                });
             });
     }
 
     onSendForApproval() {
-        var requestObject = shiftService.toShiftRequestFormat(
-            this.state.currentShifts,
-            this.state.selectedMonthId,
-            authService.getLoggedInUserId()
-        );
+        var { shifts, currentShifts, selectedMonthId } = this.state;
+        var userId = authService.getLoggedInUserId();
 
-        var approvalShifts = requestObject.shifts.map(shift => {
-            shift.status_id = 2;
-            return shift;
-        });
-
-        requestObject.shifts = approvalShifts;
-
-        axios
-            .post(
-                `/data/users-calendars/${authService.getLoggedInUserId()}`,
-                requestObject
+        calendarService
+            .sendMonthlyCalendarForApproval(
+                currentShifts,
+                userId,
+                selectedMonthId,
+                shifts
             )
-            .then(res => {
+            .then(currentShifts => {
                 this.setState({
-                    currentShifts: shiftService.parseShiftsResp(
-                        this.state.shifts,
-                        approvalShifts,
-                        authService.getLoggedInUserId()
-                    ),
-                    calendarInApproval: true
+                    currentShifts,
+                    calendarPhase: "approval"
+                });
+            })
+            .catch(err => {
+                console.log(err);
+                this.setState({
+                    response: l.serverError,
+                    responseType: "danger"
                 });
             });
     }
 
     onMonthSelected(e) {
         var selectedMonthId = parseInt(e.target.value);
+        var userId = authService.getLoggedInUserId();
+        var selectedSubdivisionId = this.state.selectedSubdivisionId
+        var { shifts } = this.state;
+        this.clearAlert();
 
-        axios
-            .get(`/data/users-calendars/${authService.getLoggedInUserId()}`, {
-                params: {
-                    month_id: selectedMonthId
-                }
-            })
-            .then(res => {
-                var calendarInApproval = false;
-                var found = res.data.shifts.find(s => s.status_id === 2);
-                if (found) calendarInApproval = true;
-                var currentShifts = shiftService.parseShiftsResp(
-                    this.state.shifts,
-                    res.data.shifts,
-                    authService.getLoggedInUserId()
-                );
+        this.setState({
+            selectedMonthId
+        })
 
-                this.setState({
-                    currentShifts,
+        if (
+            this.shouldFetchCalendar(
+                selectedMonthId,
+                selectedSubdivisionId
+            )
+        ) {
+            calendarService
+                .fetchUserCalendarWithPhase(
                     selectedMonthId,
-                    calendarInApproval
+                    userId,
+                    shifts,
+                    selectedSubdivisionId
+                )
+                .then(result => {
+                    var calendar = result[0];
+                    var calendarPhase = result[1];
+                    this.setState({
+                        currentShifts: calendar,
+                        calendarPhase
+                    });
+                })
+                .catch(err => {
+                    console.error(err);
                 });
+        }
+    }
+
+    onSubdivisionSelected(e) {
+        
+        var selectedMonthId = this.state.selectedMonthId
+        var selectedSubdivisionId = parseInt(e.target.value);
+        var userId = authService.getLoggedInUserId();
+        var { shifts } = this.state;
+        this.clearAlert();
+
+        this.setState({
+            selectedSubdivisionId
+        })
+
+        if (this.shouldFetchCalendar(selectedMonthId, selectedSubdivisionId)) {
+            calendarService
+            .fetchUserCalendarWithPhase(
+                selectedMonthId,
+                userId,
+                shifts,
+                selectedSubdivisionId
+            )
+            .then(result => {
+                var calendar = result[0];
+                var calendarPhase = result[1];
+                this.setState({
+                    currentShifts: calendar,
+                    calendarPhase
+                });
+            })
+            .catch(err => {
+                console.error(err);
             });
+        }
+    }
+
+    shouldFetchCalendar(monthId, subdivisionId) {
+        return monthId !== -1 && subdivisionId !== -1;
+    }
+
+    shouldDisplayTable() {
+        return (
+            this.state.selectedMonthId !== -1 &&
+            this.state.selectedSubdivisionId !== -1
+        );
     }
 
     render() {
+        var userRoleId = authService.getUserRoleId();
+        var userName = authService.getUsername();
+        var userCsr = authService.getUserCSR();
+
+        var {
+            selectedMonthId,
+            currentShifts,
+            calendarPhase,
+            selectedSubdivisionId
+        } = this.state;
+
         return (
             <>
                 <h2>{l.bookingCalendar}</h2>
                 <h4>
-                    {authService.getUsername()} - ({authService.getUserCSR()})
+                    {userName} - ({userCsr})
                 </h4>
                 <div className="selectors">
                     <Form.Group>
@@ -207,10 +293,10 @@ class BookingCalendar extends Component {
                             as="select"
                             name="selected_month"
                             onChange={this.onMonthSelected}
-                            value={this.state.selectedMonthId}
+                            value={selectedMonthId}
                         >
                             <option disabled key={0} value={-1}>
-                                Wybierz miesiąc
+                                {l.month}
                             </option>
                             {this.state.months.map((month, el) => (
                                 <option key={el + 1} value={month.month_id}>
@@ -218,41 +304,46 @@ class BookingCalendar extends Component {
                                 </option>
                             ))}
                         </Form.Control>
-                        {this.state.selectedMonthId !== -1 &&
-                        !this.state.calendarInApproval ? (
-                            <ButtonToolbar>
-                                <Button variant="primary" onClick={this.onSave}>
-                                    <i className="fas fa-save"></i>Zapisz
-                                </Button>
-                                <Button
-                                    variant="success"
-                                    onClick={this.onSendForApproval}
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label>{l.subdivision}</Form.Label>
+                        <Form.Control
+                            as="select"
+                            name="selected_subdivision"
+                            onChange={this.onSubdivisionSelected}
+                            value={selectedSubdivisionId}
+                        >
+                            <option disabled key={0} value={-1}>
+                                {l.subdivision}
+                            </option>
+                            {this.state.subdivisions.map(subdivision => (
+                                <option
+                                    key={subdivision.subdivision_id}
+                                    value={subdivision.subdivision_id}
                                 >
-                                    <i
-                                        className="fa fa-paper-plane"
-                                        aria-hidden="true"
-                                    ></i>
-                                    Wyślij do zatwierdzenia
-                                </Button>
-                            </ButtonToolbar>
-                        ) : (
-                            ""
-                        )}
+                                    {subdivision.subdivision_name}
+                                </option>
+                            ))}
+                        </Form.Control>
                     </Form.Group>
                 </div>
-                <Alert show={this.state.calendarInApproval} variant={"info"}>
-                    Wybrany kalendarz został wysłany do zatwierdzenia!
-                </Alert>
-                {this.state.selectedMonthId !== -1 ? (
+                <Buttons
+                    roleId={authService.getUserRoleId()}
+                    calendarPhase={this.state.calendarPhase}
+                    onSave={this.onSave}
+                    onApproval={this.onSendForApproval}
+                />
+                <Alerts
+                    response={this.state.response}
+                    responseType={this.state.responseType}
+                    userRoleId={userRoleId}
+                    calendarPhase={calendarPhase}
+                    noResults={!(this.shouldDisplayTable())}
+                />
+                {this.shouldDisplayTable() ? (
                     <>
-                        <Legend ids={statusService.getStatusIdsForPhase("reservations", authService.getUserRoleId())}></Legend>
                         <Table
-                            className={
-                                "booking " +
-                                (this.state.calendarInApproval
-                                    ? "approval"
-                                    : "editable")
-                            }
+                            className={"booking " + calendarPhase}
                             bordered
                             responsive
                         >
@@ -288,8 +379,7 @@ class BookingCalendar extends Component {
                                                         statusService.getStatusIdFromCurrentShifts(
                                                             shift.shift_id,
                                                             day.day_number,
-                                                            this.state
-                                                                .currentShifts
+                                                            currentShifts
                                                         )
                                                     )}
                                                     onClick={() =>
@@ -299,9 +389,10 @@ class BookingCalendar extends Component {
                                                         )
                                                     }
                                                 >
-                                                    {this.state
-                                                        .calendarInApproval ? (
-                                                        <i className="default fas fa-ban"></i>
+                                                    {calendarService.inApproval(
+                                                        this.state.calendarPhase
+                                                    ) ? (
+                                                        <i className="default fas fa-paper-plane"></i>
                                                     ) : (
                                                         <i className="default fas fa-check"></i>
                                                     )}
@@ -313,6 +404,12 @@ class BookingCalendar extends Component {
                                 })}
                             </tbody>
                         </Table>
+                        <Legend
+                            ids={statusService.getStatusIdsForPhase(
+                                calendarPhase,
+                                userRoleId
+                            )}
+                        ></Legend>
                     </>
                 ) : (
                     ""

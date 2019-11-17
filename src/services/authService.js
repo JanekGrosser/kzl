@@ -52,6 +52,12 @@ class AuthService {
         return this.data.role_id;
     }
 
+    getUserSubdivisions() {
+        if (!this.data.user_subdivisions) 
+            return [];
+        return this.data.user_subdivisions.split(",");
+    }
+
     isLoggedIn() {
         return this.token !== null
     }

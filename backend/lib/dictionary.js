@@ -150,13 +150,15 @@ exports.getCalendarPhase = async (req, res) => {
             return (shift.status_id == 5 || shift.status_id == 6 || shift.status_id == 7);
         });
         if ((approvalStatus.length > 0) && (approvedStatus.length > 0)) console.log("WARNING: Both approval and approved status present");
-        if ((monthStatus.phase === "reservations") && (approvalStatus.length>0)) {
-            return res.status(200).json({phase: "approval"});
+        if ((monthStatus.phase === "reservations")) {
+            if (approvalStatus.length>0)
+                return res.status(200).json({phase: "approval"});
+            else if (approvedStatus.length > 0) 
+                return res.status(200).json({phase: "approved"});
         } else if ((monthStatus.phase === "approval") && (approvedStatus.length>0)) {
             return res.status(200).json({ phase: "approved" });
-        } else {
-            return res.status(200).json(monthStatus);
-        };
+        }
+        return res.status(200).json(monthStatus);
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);

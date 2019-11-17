@@ -2,6 +2,10 @@ main {
     &.main-view {
         &.summary-daily {
 
+            .form-group {
+                margin-right: 1rem;
+            }
+
             .alert {
                 margin-bottom: 1rem;
                 margin-right: 0;
@@ -26,6 +30,13 @@ main {
             }
 
             table.summary-daily  {
+                td {
+                    &.approved,
+                    &.current-added {
+                        background-color: $success-background;
+                        color: $success-text;
+                    }
+                }
                 &.past {
                     td {
                         &.approved,

@@ -68,7 +68,9 @@ html {
             }
 
             .alert {
-                margin: $calendar-margin $calendar-margin 0 0;
+                margin-top: 0;
+                margin-bottom: $calendar-margin;
+                margin-right: 0;
             }
 
             .input-group {
@@ -77,10 +79,11 @@ html {
 
             .btn-toolbar {
                 button {
-                    &:first-child {
-                        margin-left: 0;
+                    &:last-child {
+                        margin-right: 0;
                     }
-                    margin: $calendar-margin 0 $calendar-margin $calendar-margin;
+                    margin-right: $calendar-margin;
+                    margin-bottom: $calendar-margin;
                 }
             }
 
@@ -125,8 +128,12 @@ html {
                 td {
                     &:hover {
                         cursor: pointer;
+                        background-color: $secondary-background;
                     }
                     &.approval {
+                        &:hover {
+                            background-color: $info-background;
+                        }
                         background-color: $info-background;
                         i {
                             color: $info-text;
@@ -137,8 +144,23 @@ html {
                     }
                     &.editable {
                         background-color: $primary-background;
+                        &:hover {
+                            background-color: $primary-background;
+                        }
                         i {
                             color: $primary-text;
+                            &.default {
+                                display: inline;
+                            }
+                        }
+                    }
+                    &.approved {
+                        &:hover {
+                            background-color: $success-background;
+                        }
+                        background-color: $success-background;
+                        i {
+                            color: $success-text;
                             &.default {
                                 display: inline;
                             }
@@ -147,6 +169,9 @@ html {
                     &.approval-added,
                     &.approved-added,
                     &.current-added {
+                        &:hover {
+                            background-color: $warning-background;
+                        }
                         background-color: $warning-background;
                         i {
                             color: $warning-text;
@@ -155,6 +180,9 @@ html {
                     &.approval-removed,
                     &.approved-removed,
                     &.current-removed {
+                        &:hover {
+                            background-color: $danger-background;
+                        }
                         background-color: $danger-background;
                         i {
                             color: $danger-text;
@@ -215,6 +243,7 @@ html {
                 &:hover {
                     text-decoration: underline;
                     color: #0056b3;
+                    cursor: pointer;
                 }
             }
 

@@ -1,13 +1,41 @@
 main {
     &.main-view {
+        .selectors {
+            display: flex;
+            flex-flow: wrap;
+            align-items: center;
+            h3 {
+                margin: 0;
+            }
+            .form-group {
+                margin-right: 1rem;
+            }
+
+            .select {
+                min-width: 200px;
+            }
+        }
         table.current {
+
+            th {
+                width: 70px;
+                &:first-child {
+                    width: 150px;
+                }
+            }
+            
             tr {
                 /**
                 * All other statuses should not be displayed in this table
                 */
+                .subdivision {
+                    
+                }
                 td {
+                    overflow: hidden;
                     &:hover {
                         cursor: initial;
+                        
                     }
                     &.editable,
                     &.approval,
@@ -15,6 +43,9 @@ main {
                     &.approval-removed,
                     &.approved-added,
                     &.approved-removed {
+                        &:hover {
+                            background-color: $secondary-background;
+                        }
                         background-color: transparent;
                     }
                 }

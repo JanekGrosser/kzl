@@ -3,6 +3,7 @@ import statusService from "./statusService";
 import shiftService from "./shiftService";
 
 class CalendarService {
+
     fetchDailyCalendar(monthId, roleId, subdivisionId, dayNumber) {
         return new Promise((resolve, reject) => {
             axios
@@ -43,12 +44,32 @@ class CalendarService {
         });
     }
 
-    fetchMonthlyCalendar(monthId, userId, shifts) {
+    fetchCurrentCalendar(userId, shifts, subdivisionId) {
+        return new Promise((resolve, reject) => {
+            axios.get(`/data/current-calendar/${userId}`, {
+                params: {
+                    subdivision_id: subdivisionId
+                }
+            })
+            .then(resp => {
+                resolve(
+                    shiftService.parseShiftsResp(shifts, resp.data)
+                );
+            })
+            .catch(err => {
+                console.error(err);
+                reject(err);
+            })
+        })
+    }
+
+    fetchMonthlyCalendar(monthId, userId, shifts, subdivisionId) {
         return new Promise((resolve, reject) => {
             axios
                 .get(`/data/users-calendars/${userId}`, {
                     params: {
-                        month_id: monthId
+                        month_id: monthId,
+                        subdivision_id: subdivisionId
                     }
                 })
                 .then(resp => {
@@ -63,7 +84,24 @@ class CalendarService {
         });
     }
 
-    saveMonthlyCalendarApproval(calendar, userId, monthId) {
+    /**
+     *
+     */
+    fetchUserCalendarWithPhase(monthId, userId, shifts, subdivisionId) {
+        return new Promise((resolve,reject) => {
+                Promise.all([
+                this.fetchMonthlyCalendar(monthId, userId, shifts, subdivisionId),
+                this.fetchUserCalendarPhase(userId, subdivisionId, monthId)
+            ]).then(result => {
+                var calendarPhase = result[1].phase
+                resolve([result[0], calendarPhase]);
+            }).catch(err => {
+                reject(err);
+            })
+        });
+    }
+
+    saveMonthlyCalendarApproval(calendar, userId, monthId, subdivisionId) {
         return new Promise((resolve, reject) => {
             axios
                 .post(
@@ -75,7 +113,8 @@ class CalendarService {
                     ),
                     {
                         params: {
-                            month_id: monthId
+                            month_id: monthId,
+                            subdivision_id: subdivisionId
                         }
                     }
                 )
@@ -92,7 +131,7 @@ class CalendarService {
      * Converts calendar in form of and saves it
      * @param {} calendar
      */
-    saveMonthlyCalendar(calendar, userId, monthId) {
+    saveMonthlyCalendar(calendar, userId, monthId, subdivisionId) {
         return new Promise((resolve, reject) => {
             axios
                 .post(
@@ -104,7 +143,8 @@ class CalendarService {
                     ),
                     {
                         params: {
-                            month_id: monthId
+                            month_id: monthId,
+                            subdivision_id: subdivisionId
                         }
                     }
                 )
@@ -117,16 +157,55 @@ class CalendarService {
         });
     }
 
-    confirmMonthlyCalendar(calendar, userId, monthId, selectedMonthPhase) {
+    sendMonthlyCalendarForApproval(calendar, userId, monthId, allShifts, subdivisionId) {
+
+        var shifts = shiftService.toShiftRequestFormat(
+            JSON.parse(JSON.stringify(calendar)),
+            monthId,
+            userId
+        );
+
+        var approvalShifts = shifts.shifts.map(shift => {
+            shift.status_id = 2;
+            return shift;
+        });
+
+        shifts.shifts = approvalShifts;
+
+        return new Promise((resolve,reject) => {
+            axios.post(
+                `/data/users-calendars/${userId}`, shifts, {
+                params: {
+                    month_id: monthId,
+                    subdivision_id: subdivisionId
+                }
+            })
+            .then(res => {
+                resolve(shiftService.parseShiftsResp(
+                    allShifts,
+                    shifts.shifts,
+                    userId
+                ))
+            })
+            .catch(err => {
+                reject(err);
+            })
+        });
+    }
+
+    confirmMonthlyCalendar(calendar, userId, monthId, selectedMonthPhase, subdivisionId) {
         var { shifts } = shiftService.toShiftRequestFormat(
             calendar,
             monthId,
             userId
         );
         shifts.map(shift => {
-            shift.status_id = statusService.shiftStatusIdOnConfirm(selectedMonthPhase,shift.status_id)
+            shift.status_id = statusService.shiftStatusIdOnConfirm(
+                selectedMonthPhase,
+                shift.status_id
+            );
             return shift;
-        })
+        });
         return new Promise((resolve, reject) => {
             axios
                 .post(
@@ -134,12 +213,32 @@ class CalendarService {
                     { shifts },
                     {
                         params: {
-                            month_id: monthId
+                            month_id: monthId,
+                            subdivision_id: subdivisionId
                         }
                     }
                 )
                 .then(resp => {
                     resolve([resp, shifts]);
+                })
+                .catch(err => {
+                    reject(err);
+                });
+        });
+    }
+
+    fetchUserCalendarPhase(userId, subdivisionId, monthId) {
+        return new Promise((resolve, reject) => {
+            axios
+                .get(`/data/calendar-phase/`, {
+                    params: {
+                        month_id: monthId,
+                        subdivision_id: subdivisionId,
+                        user_id: userId,
+                    }
+                })
+                .then(resp => {
+                    resolve(resp.data);
                 })
                 .catch(err => {
                     reject(err);
@@ -167,75 +266,84 @@ class CalendarService {
     //     })
     // }
 
+    // /**
+    //  * Saves 'as-is' daily calendar to the backend
+    //  * @param {} dayCalendar
+    //  * @param {*} monthId
+    //  * @param {*} roleId
+    //  * @param {*} dayNumber
+    //  */
+    // saveDailyCalendar(dayCalendar, monthId, roleId, dayNumber) {
+    //     var promise = new Promise((resolve, reject) => {
+    //         axios
+    //             .post(
+    //                 `/data/day-calendar`,
+    //                 {
+    //                     shifts: this.reverseConvertDailyCalendarShiftsToDailyCalendarObject(
+    //                         dayCalendar,
+    //                         monthId,
+    //                         dayNumber
+    //                     )
+    //                 },
+    //                 {
+    //                     params: {
+    //                         dayNumber,
+    //                         monthId,
+    //                         roleId
+    //                     }
+    //                 }
+    //             )
+    //             .then(resp => {
+    //                 resolve();
+    //             })
+    //             .catch(err => {
+    //                 console.error(err);
+    //                 reject();
+    //             });
+    //     });
+
+    //     return promise;
+    // }
+
+    // //TODO wont be used for now
+    // confirmDailyCalendar(dayCalendar, monthId, roleId, dayNumber, monthPhase) {
+    //     var tempDayCalendar = JSON.parse(JSON.stringify(dayCalendar));
+    //     Object.keys(tempDayCalendar).forEach(userId => {
+    //         Object.keys(tempDayCalendar[userId]).forEach(shiftId => {
+    //             tempDayCalendar[userId][
+    //                 shiftId
+    //             ] = statusService.shiftStatusIdOnConfirm(
+    //                 monthPhase,
+    //                 tempDayCalendar[userId][shiftId]
+    //             );
+    //         });
+    //     });
+    //     //reverseConvertDailyCalendarShiftsToDailyCalendarObject
+    // }
+
     /**
-     * Saves 'as-is' daily calendar to the backend
-     * @param {} dayCalendar
-     * @param {*} monthId
-     * @param {*} roleId
-     * @param {*} dayNumber
+     * 
+     * @param {*} calendarPhase 
+     * @param {*} userRoleId 
      */
-    saveDailyCalendar(dayCalendar, monthId, roleId, dayNumber) {
-        var promise = new Promise((resolve, reject) => {
-            axios
-                .post(
-                    `/data/day-calendar`,
-                    {
-                        shifts: this.reverseConvertDailyCalendarShiftsToDailyCalendarObject(
-                            dayCalendar,
-                            monthId,
-                            dayNumber
-                        )
-                    },
-                    {
-                        params: {
-                            dayNumber,
-                            monthId,
-                            roleId
-                        }
-                    }
-                )
-                .then(resp => {
-                    resolve();
-                })
-                .catch(err => {
-                    console.error(err);
-                    reject();
-                });
-        });
-
-        return promise;
-    }
-
-    //TODO wont be used for now
-    confirmDailyCalendar(dayCalendar, monthId, roleId, dayNumber, monthPhase) {
-        var tempDayCalendar = JSON.parse(JSON.stringify(dayCalendar));
-        Object.keys(tempDayCalendar).forEach(userId => {
-            Object.keys(tempDayCalendar[userId]).forEach(shiftId => {
-                tempDayCalendar[userId][
-                    shiftId
-                ] = statusService.shiftStatusIdOnConfirm(
-                    monthPhase,
-                    tempDayCalendar[userId][shiftId]
-                );
-            });
-        });
-        //reverseConvertDailyCalendarShiftsToDailyCalendarObject
-    }
-
-    isEditable(monthPhase, userRoleId) {
+    isEditable(calendarPhase, userRoleId) {
         switch (userRoleId) {
             case 1:
                 return true;
             case 2:
             case 3:
-                return monthPhase === "reservations";
+                return calendarPhase === "reservations";
             case 4:
                 return false;
             case 5:
-                return monthPhase === "current" || monthPhase === "approval";
+                return calendarPhase === "current" || calendarPhase === "approval";
             default:
                 return false;
         }
+    }
+
+    inApproval(calendarPhase) {
+        return calendarPhase === "approval";
     }
 
     /**

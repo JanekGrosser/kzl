@@ -49,7 +49,7 @@ exports.getShiftsCount = async (req, res) =>{
 exports.getCurrentShifts = async (req, res) => {
     try {
         let id = req.params.user_id;
-        let subdivisionId = req.query.subdivision_id;
+        //let subdivisionId = req.query.subdivision_id;
         //Get current year and month
         let dateQueryString = general.currentYearMonth();
         //Get current months id
@@ -57,8 +57,8 @@ exports.getCurrentShifts = async (req, res) => {
         //Get requested shifts form db
         let shifts = await knex("man_shifts")
             .select("shift_id", "month_id", "day_number", "status_id", "subdivision_id")
-            .where({ user_id: id, subdivision_id: subdivisionId })
-            .andWhere({ month_id: yearMonth.month_id})
+            //.where({ user_id: id, subdivision_id: subdivisionId })
+            .where({ month_id: yearMonth.month_id})
             .orderBy([{ column: "month_id" }, { column: "shift_id" }]);
         //Send shifts as response
         return res.status(200).json(shifts);   
