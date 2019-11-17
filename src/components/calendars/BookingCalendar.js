@@ -346,6 +346,7 @@ class BookingCalendar extends Component {
                             className={"booking " + calendarPhase}
                             bordered
                             responsive
+                            striped
                         >
                             <thead className={"thead-dark"}>
                                 <tr>

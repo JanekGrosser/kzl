@@ -166,8 +166,11 @@ class TechnicianCalendar extends Component {
         var t = new Date(parseInt(currentMonth[0]), currentMonthInt, 1);
         var days = [];
         while (t.getMonth() == currentMonthInt) {
+            var dayOfWeek = t.getDay();
             days.push({
-                day_number: t.getDate()
+                day_number: t.getDate(),
+                day_of_week: dayOfWeek,
+                weekend: dayOfWeek === 0 || dayOfWeek === 6
             });
             var t1 = t.getTime();
             t = new Date(t1 + 24 * 60 * 60 * 1000);
@@ -594,6 +597,7 @@ class TechnicianCalendar extends Component {
                         className={"technician " + this.state.calendarPhase}
                         bordered
                         responsive
+                        striped
                     >
                         <thead className={"thead-dark"}>
                             <tr>
@@ -601,12 +605,14 @@ class TechnicianCalendar extends Component {
                                 {this.getDays().map(d => {
                                     return (
                                         <th
+                                            className={(d.weekend ? " weekend" : "")}
                                             key={d.day_number}
                                             onClick={() => {
                                                 this.onDayClick(d.day_number);
                                             }}
                                         >
-                                            {d.day_number}
+                                            {d.day_number}<br/>
+                                            {l.dayArray[d.day_of_week]}
                                         </th>
                                     );
                                 })}

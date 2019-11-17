@@ -84,7 +84,10 @@ var translations = {
         sendToApproval: "Wyślij do zatwierdzenia",
         confirm: "Zatwierdź",
         change: "Zmień",
-        noResults: "Brak wyników"
+        noResults: "Brak wyników",
+        dayArray: [
+            "Nd","Pn","Wt","Śr","Czw","Pt","Sb"
+        ]
     }
 }
 
