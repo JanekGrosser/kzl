@@ -514,6 +514,7 @@ class SummaryDailyCalendar extends Component {
                                 }
                                 bordered
                                 responsive
+                                striped
                             >
                                 <thead className={"thead-dark"}>
                                     <tr>

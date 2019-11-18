@@ -87,7 +87,7 @@ class UsersComponent extends Component {
                     </InputGroup>
                 </div>
                 <div className="table-wrapper">
-                    <Table responsive bordered hover>
+                    <Table responsive bordered hover striped>
                         <thead>
                             <tr>
                                 <th>{lang.firstName}</th>

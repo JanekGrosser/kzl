@@ -171,7 +171,7 @@ class CurrentCalendar extends Component {
                 </div>
                 {this.shouldDisplayTable() ? (
                     <>
-                        <Table className={"current"} bordered responsive>
+                        <Table className={"current"} bordered responsive striped>
                             <thead className={"thead-dark"}>
                                 <tr>
                                     <th className="cross-section">
