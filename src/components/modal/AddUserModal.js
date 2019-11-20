@@ -63,11 +63,22 @@ class AddUserModal extends Component {
                 });
             })
             .catch(err => {
+                console.log(err.response.status);
+                var error = true;
+                var message = util.format(lang.userAddedError, userToSave);
+                if (err && err.response) {
+                    switch(err.response.status) {
+                        case 400:
+                            message = lang.userWrongData;
+                            break;
+                    }
+                }
+                
                 console.error(err);
                 this.setState({
                     alert: true,
-                    error: true,
-                    message: util.format(lang.userAddedError, userToSave)
+                    error,
+                    message
                 });
             });
     }
@@ -305,7 +316,7 @@ class AddUserModal extends Component {
                         {lang.close}
                     </Button>
                     <Button variant="primary" onClick={this.onSave}>
-                        {lang.save}
+                        {lang.saveUser}
                     </Button>
                 </Modal.Footer>
             </Modal>

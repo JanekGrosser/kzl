@@ -112,7 +112,7 @@ class SummaryDailyCalendar extends Component {
                         subdivisionId = subdivisionId || -1;
                         roleId = roleId || -1;
 
-                        this.fetchMonthPhase(currentMonthResp.data.month_id);
+                        this.fetchMonthPhase(monthId);
                         this.setState({
                             subdivisions: subdivisionsResp.data,
                             roles: rolesResp.data.filter(
@@ -394,7 +394,7 @@ class SummaryDailyCalendar extends Component {
                 );
             case "past":
                 return (
-                    <Alert variant="warning">
+                    <Alert variant="info">
                         {l.alertCannotEditPastCalendar}
                     </Alert>
                 );
@@ -620,7 +620,7 @@ class SummaryDailyCalendar extends Component {
                                     </tr>
                                 </tbody>
                             </Table>
-                            <Legend ids={[5]}></Legend>
+                            <Legend ids={this.state.currentMonthPhase === "past" ? [-1] : [5]}></Legend>
                         </>
                     ) : (
                         ""

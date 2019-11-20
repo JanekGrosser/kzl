@@ -87,8 +87,11 @@ class BookingCalendar extends Component {
             var t = new Date(currentYearInteger, currentMonthInteger, 1);
             var days = [];
             while (t.getMonth() == currentMonthInteger) {
+                var dayOfWeek = t.getDay();
                 days.push({
-                    day_number: t.getDate()
+                    day_number: t.getDate(),
+                    day_of_week: dayOfWeek,
+                    weekend: dayOfWeek === 0 || dayOfWeek === 6
                 });
                 t = new Date(
                     currentYearInteger,
@@ -355,7 +358,10 @@ class BookingCalendar extends Component {
                                     </th>
                                     {this.getDays().map((d, el) => {
                                         return (
-                                            <th key={el + 1}>{d.day_number}</th>
+                                            <th className={(d.weekend ? " weekend" : "")} key={el + 1}>
+                                                {d.day_number}<br/>
+                                                {l.dayArray[d.day_of_week]}
+                                            </th>
                                         );
                                     })}
                                 </tr>

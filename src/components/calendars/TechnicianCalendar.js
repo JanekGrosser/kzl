@@ -464,9 +464,7 @@ class TechnicianCalendar extends Component {
                 );
                 this.setState({
                     calendar,
-                    calendarPhase: "approved",
-                    response: l.alertCalendarApproved,
-                    responseType: "success"
+                    calendarPhase: "approved"
                 });
                 this.fetchSummary(
                     this.state.selectedRoleId,

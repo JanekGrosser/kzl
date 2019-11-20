@@ -97,8 +97,11 @@ class CurrentCalendar extends Component {
         );
         var days = [];
         while (t.getMonth() == currentMonth) {
+            var dayOfWeek = t.getDay();
             days.push({
-                day_number: t.getDate()
+                day_number: t.getDate(),
+                day_of_week: dayOfWeek,
+                weekend: dayOfWeek === 0 || dayOfWeek === 6
             });
             var t1 = t.getTime();
             t = new Date(t1 + 24 * 60 * 60 * 1000);
@@ -114,7 +117,8 @@ class CurrentCalendar extends Component {
     }
 
     onSubdivisionSelected(selectedSubdivisions) {
-        selectedSubdivisions = selectedSubdivisions === null ? [] : selectedSubdivisions;
+        selectedSubdivisions =
+            selectedSubdivisions === null ? [] : selectedSubdivisions;
         this.setState({
             selectedSubdivisions
         });
@@ -132,20 +136,31 @@ class CurrentCalendar extends Component {
 
     getSubdivisionForTableCell(shiftId, dayNumber) {
         if (this.state.currentShifts[shiftId][dayNumber]) {
-            return this.state.subdivisionIdToName[this.state.currentShifts[shiftId][dayNumber].subdivision_id];
+            return this.state.subdivisionIdToName[
+                this.state.currentShifts[shiftId][dayNumber].subdivision_id
+            ];
         }
         return "";
     }
 
     render() {
-
         var userId = authService.getLoggedInUserId();
         var monthId = this.state.currentMonthId;
-        var filteredShifts = shiftService.toShiftRequestFormat(this.state.currentShifts, monthId, userId);
+        var filteredShifts = shiftService.toShiftRequestFormat(
+            this.state.currentShifts,
+            monthId,
+            userId
+        );
         filteredShifts.shifts = filteredShifts.shifts.filter(shift => {
-            return this.state.subdivisionIdToName[shift.subdivision_id] !== undefined;
-        })
-        var filtered = shiftService.parseShiftsResp(this.getShifts(), filteredShifts.shifts);
+            return (
+                this.state.subdivisionIdToName[shift.subdivision_id] !==
+                undefined
+            );
+        });
+        var filtered = shiftService.parseShiftsResp(
+            this.getShifts(),
+            filteredShifts.shifts
+        );
         return (
             <>
                 <h2>{l.currentCalendar}</h2>
@@ -171,14 +186,30 @@ class CurrentCalendar extends Component {
                 </div>
                 {this.shouldDisplayTable() ? (
                     <>
-                        <Table className={"current"} bordered responsive striped>
+                        <Table
+                            className={"current"}
+                            bordered
+                            responsive
+                            striped
+                        >
                             <thead className={"thead-dark"}>
                                 <tr>
                                     <th className="cross-section">
                                         Czas/Dzień
                                     </th>
-                                    {this.getDays().map(d => {
-                                        return <th>{d.day_number}</th>;
+                                    {this.getDays().map((d, el) => {
+                                        return (
+                                            <th
+                                                className={
+                                                    d.weekend ? " weekend" : ""
+                                                }
+                                                key={el + 1}
+                                            >
+                                                {d.day_number}
+                                                <br />
+                                                {l.dayArray[d.day_of_week]}
+                                            </th>
+                                        );
                                     })}
                                 </tr>
                             </thead>
@@ -202,11 +233,16 @@ class CurrentCalendar extends Component {
                                                     )}
                                                     onClick={() => {}}
                                                 >
-                                                    <span className={"subdivision"
-                                                    }>{this.getSubdivisionForTableCell(
-                                                        shift.shift_id,
-                                                        day.day_number
-                                                    )}</span>
+                                                    <span
+                                                        className={
+                                                            "subdivision"
+                                                        }
+                                                    >
+                                                        {this.getSubdivisionForTableCell(
+                                                            shift.shift_id,
+                                                            day.day_number
+                                                        )}
+                                                    </span>
                                                 </td>
                                             ))}
                                         </tr>

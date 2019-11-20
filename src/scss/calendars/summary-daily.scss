@@ -29,6 +29,13 @@ main {
                 }
             }
 
+            ul.legenda {
+                li.past {
+                    background-color: $info-background;
+                    color: $info-text;
+                }
+            }
+
             table.summary-daily  {
                 td {
                     &.approved,
@@ -36,6 +43,7 @@ main {
                         background-color: $success-background;
                         color: $success-text;
                     }
+                    
                 }
                 &.past {
                     td {

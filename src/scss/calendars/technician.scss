@@ -11,8 +11,11 @@ main {
             }
 
             table.technician {
-                th:hover, td:first-child:hover {
-                    cursor: pointer !important;
+                th:hover {
+                    cursor: pointer;
+                    &:first-child {
+                        cursor: default;
+                    }
                 }
                 th:hover {
                     background-color: black;
@@ -23,6 +26,9 @@ main {
                 td {
                     &:hover {
                         cursor: pointer;
+                        &:first-child {
+                            cursor: default;
+                        }
                     }
                     position: relative;
                     .summary {
