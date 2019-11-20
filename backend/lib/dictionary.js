@@ -139,10 +139,10 @@ exports.getCalendarPhase = async (req, res) => {
         let month = await knex("months").first().where({ month_id: monthId });
         if (!month) return res.status(404).json({ error: "Month id not found" });
         let monthStatus = general.monthInPhase(month.year_month);
-        let shifts = await knex("division_shifts_view")
+        let shifts = await knex("man_shifts")
             .select("status_id")
-            .where({ user_id: userId, month_id: monthId})
-            .andWhere("user_subdivisions", "like", "%" + subdivisionId + "%");
+            .where({ user_id: userId, month_id: monthId, subdivision_id: subdivisionId});
+        console.log(shifts);
         let approvalStatus = shifts.filter(shift=>{
             return (shift.status_id == 2);
         });
