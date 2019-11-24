@@ -3,11 +3,12 @@ import axios from "axios";
 // TODO
 class UserService {
 
-    fetchUsers(roleId, subdivisionId) {
+    fetchUsers(roleId, subdivisionId, monthId) {
         return new Promise((resolve, reject) => {
             axios.get(`/users/list/${subdivisionId}`, {
                 params: {
-                    role_id: roleId
+                    role_id: roleId,
+                    month_id: monthId
                 }
             })
             .then(resp => {

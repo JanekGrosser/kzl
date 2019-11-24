@@ -78,6 +78,7 @@ var translations = {
         alertCalendarCurrentChanged: "Kalendarz bieżacy zmieniony",
         alertEditingApprovalCalendar: "Kalendarz w fazie zatwierdzania",
         alertCalendarSentToApproval: "Kalendarz został wysłany do zatwierdzenia",
+        alertCalendarApprovedChanged: "Kalendarz zmieniony",
         technicianRole: "Rola technika",
         technician: "Technik",
         reset: "Resetuj",

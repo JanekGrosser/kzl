@@ -40,6 +40,17 @@ class StatusService {
                 }
             case "past":
                 return currentStatusId;
+            case "approved":
+                switch (currentStatusId) {
+                    case 5:
+                        return 7;
+                    case 7:
+                        return 5;
+                    case 6:
+                        return 0;
+                    default:
+                        return 6;
+                }
             default:
                 console.error("NO FOUND");
         }
