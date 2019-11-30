@@ -6,10 +6,11 @@ exports.getSubdivisionsDictionary = async (req, res) => {
     try {
         let subdivisionIds = res.locals.payload.user_subdivisions.split(", ");
         let role = res.locals.payload.role;
+        console.log(role);
         let subdivisions = await knex("subdivisions")
             .select()
             .modify((queryBuilder)=>{
-                if (role !== "adm") {
+                if ((role !== "adm") && (role !== "koz")) {
                     queryBuilder.whereIn("subdivision_id", subdivisionIds);
                 }
             });
