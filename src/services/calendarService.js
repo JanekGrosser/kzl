@@ -334,9 +334,9 @@ class CalendarService {
             case 3:
                 return calendarPhase === "reservations";
             case 4:
-                return false;
-            case 5:
                 return calendarPhase === "current" || calendarPhase === "approval";
+            case 5:
+                return true;
             default:
                 return false;
         }

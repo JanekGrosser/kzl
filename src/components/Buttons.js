@@ -1,10 +1,17 @@
 import React, { Component } from "react";
+import PropTypes from 'prop-types';
 import { Button, ButtonToolbar } from "react-bootstrap";
 import lang from "../common/lang";
 
 var l = lang();
 /**
  * Renders toolbar and actions depending on role and calendar phase
+ * calendarPhases:
+ * "reservations", "approval", "approved", "current"
+ * roleIds:
+ * 2,3 - technician
+ * 4 - coordinator
+ * 5 - managind coordinator
  */
 class Buttons extends Component {
     determineButtons(roleId, calendarPhase) {
@@ -39,6 +46,7 @@ class Buttons extends Component {
                 }
             case "approval":
                 switch (roleId) {
+                    case 4:
                     case 5:
                         return (
                             <>
@@ -63,6 +71,7 @@ class Buttons extends Component {
                 }
             case "current":
                 switch (roleId) {
+                    case 4:
                     case 5:
                         return (
                             <>
@@ -80,6 +89,20 @@ class Buttons extends Component {
                 }
 
             case "approved":
+                switch(roleId) {
+                    case 5:
+                        return (
+                            <>
+                                <Button
+                                    variant="outline-danger"
+                                    onClick={this.props.onChangeApproved}
+                                >
+                                    <i className="fas fa-save"></i>
+                                    {l.change}
+                                </Button>
+                            </>
+                        )
+                }
             case "past":
             default:
                 return "";
@@ -105,6 +128,29 @@ class Buttons extends Component {
             </ButtonToolbar>
         );
     }
+}
+
+Buttons.defaultProps = {
+    displayReset: false,
+    onChangeCurrent: () => {},
+    onChangeApproved: () => {},
+    onConfirmApproval: () => {},
+    onSaveApproval: () => {},
+    onSave: () => {},
+    onApproval: () => {},
+    onReset: () => {}
+}
+
+Buttons.propTypes = {
+    onReset: PropTypes.func,
+    onChangeCurrent: PropTypes.func,
+    onChangeApproved: PropTypes.func,
+    onSaveApproval: PropTypes.func,
+    onConfirmApproval: PropTypes.func,
+    onSave: PropTypes.func,
+    onApproval: PropTypes.func,
+    calendarPhase: PropTypes.string,
+    displayReset: PropTypes.bool
 }
 
 export default Buttons;

@@ -4,10 +4,16 @@ main {
             .selectors {
                 display: flex;
                 flex-flow: wrap;
-                align-items: flex-end;
+                align-items: center;
                 .form-group {
                     margin-right: 1rem;
                 }
+                .selectors-left {
+                    display: flex;
+                    flex: 1;
+                    flex-flow: row wrap;
+                }
+                justify-content: space-between;
             }
 
             table.technician {
@@ -70,6 +76,22 @@ main {
                         &.current-added,
                         &.current-removed {
                             background-color: transparent;
+                        }
+                    }
+                }
+
+                /*
+                * cursor based on roles
+                * role-4 coordinator
+                * role-5 managing coordinator
+                */
+                &.role-5 {
+                    &.approved,
+                    &.approval {
+                        td {
+                            &:hover {
+                                cursor: pointer;
+                            }
                         }
                     }
                 }

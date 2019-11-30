@@ -39,7 +39,8 @@ class Alerts extends Component {
                     default:
                         return "";
                 }
-            case (4, 5):
+            case 4:
+            case 5:
                 switch (calendarPhase) {
                     case "current":
                         return (
